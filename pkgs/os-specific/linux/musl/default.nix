@@ -67,6 +67,10 @@ stdenv.mkDerivation rec {
       url = "https://raw.githubusercontent.com/openwrt/openwrt/87606e25afac6776d1bbc67ed284434ec5a832b4/toolchain/musl/patches/300-relative.patch";
       sha256 = "0hfadrycb60sm6hb6by4ycgaqc9sgrhh42k39v8xpmcvdzxrsq2n";
     })
+    (fetchurl {
+      url = "https://inbox.vuxu.org/musl/20210915221155.3977763-4-hi@alyssa.is/raw";
+      sha256 = "12bsvxqgym2drppmmymnr20xwkc4kn1bq7d3rysyayr92025hih8";
+    })
   ];
   CFLAGS = [ "-fstack-protector-strong" ]
     ++ lib.optional stdenv.hostPlatform.isPower "-mlong-double-64";
