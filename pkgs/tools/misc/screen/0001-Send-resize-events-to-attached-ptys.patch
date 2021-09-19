@@ -1,0 +1,39 @@
+From 0a083af3274639416ca7a8a7bb260d886110080f Mon Sep 17 00:00:00 2001
+From: Alyssa Ross <hi@alyssa.is>
+Date: Sun, 19 Sep 2021 11:05:32 +0000
+Subject: [PATCH] Send resize events to attached ptys
+
+Virtual machine monitor programs like QEMU[1] and cloud-hypervisor[2]
+support creating ptys which are hooked up to the VM's console.  In the
+case of cloud-hypervisor, this even supports resizing, where resize
+events on the pty will be propagated to the guest VM.
+
+But when attaching to one of these ptys with screen, like
+`screen /dev/pts/1`, screen wouldn't inform the pty of its output size.
+We fix this by removing the pid check.  Also, we need to remove the 0
+checks for the previous width and height, or screen won't resize the
+pty when it first attaches, only on subsequent resizes.
+
+[1]: https://www.qemu.org/
+[2]: https://github.com/cloud-hypervisor/cloud-hypervisor
+---
+ src/resize.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/resize.c b/src/resize.c
+index 070d3ed..686e02d 100644
+--- a/resize.c
++++ b/resize.c
+@@ -983,8 +983,7 @@ int wi, he, hi;
+ 
+   /* signal new size to window */
+ #ifdef TIOCSWINSZ
+-  if (wi && (p->w_width != wi || p->w_height != he)
+-      && p->w_width != 0 && p->w_height != 0 && p->w_ptyfd >= 0 && p->w_pid)
++  if (wi && (p->w_width != wi || p->w_height != he) && p->w_ptyfd >= 0)
+     {
+       glwz.ws_col = wi;
+       glwz.ws_row = he;
+-- 
+2.32.0
+
