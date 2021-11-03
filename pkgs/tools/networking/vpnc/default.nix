@@ -1,4 +1,4 @@
-{ lib, stdenv, fetchFromGitHub, fetchpatch
+{ lib, stdenv, fetchFromGitHub, fetchpatch, buildPackages
 , makeWrapper, pkg-config, perl
 , gawk, gnutls, libgcrypt, openresolv, vpnc-scripts
 , opensslSupport ? false, openssl # Distributing this is a GPL violation.
@@ -17,6 +17,11 @@ stdenv.mkDerivation {
   };
 
   patches = [
+    # Use pkg-config to find libgcrypt, fixing cross.
+    (fetchpatch {
+      url = "https://github.com/streambinder/vpnc/commit/f1efcfc9824944370de2fc4ac46dc4292ddbecea.patch";
+      sha256 = "13kxp2147q4jz98p5qqmj32mg15lb02jdz5j4lfjgvlmbz133q4h";
+    })
     # Don't do networking during build.
     (fetchpatch {
       url = "https://github.com/streambinder/vpnc/commit/9f4e3ab1f51c8c5ff27b8290f5a533a87d85c011.patch";
@@ -24,7 +29,7 @@ stdenv.mkDerivation {
     })
   ];
 
-  nativeBuildInputs = [ makeWrapper ]
+  nativeBuildInputs = [ makeWrapper perl ]
     ++ lib.optional (!opensslSupport) pkg-config;
   buildInputs = [ libgcrypt perl ]
     ++ (if opensslSupport then [ openssl ] else [ gnutls ]);
@@ -33,6 +38,8 @@ stdenv.mkDerivation {
     "PREFIX=$(out)"
     "ETCDIR=$(out)/etc/vpnc"
     "SCRIPT_PATH=${vpnc-scripts}/bin/vpnc-script"
+  ] ++ lib.optionals (stdenv.buildPlatform != stdenv.hostPlatform) [
+    "VPNC=${buildPackages.vpnc}/bin/vpnc"
   ] ++ lib.optional opensslSupport "OPENSSL_GPL_VIOLATION=yes";
 
   postPatch = ''
