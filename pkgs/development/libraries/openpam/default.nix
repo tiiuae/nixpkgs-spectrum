@@ -1,13 +1,18 @@
-{ stdenv, fetchurl, lib }:
+{ lib, stdenv, fetchFromGitea, autoreconfHook, perl, pkg-config }:
 
 stdenv.mkDerivation rec {
   pname = "openpam";
-  version = "20170430";
+  version = "20190224";
 
-  src = fetchurl {
-    url = "mirror://sourceforge/openpam/openpam/Resedacea/${pname}-${version}.tar.gz";
-    sha256 = "0pz8kf9mxj0k8yp8jgmhahddz58zv2b7gnyjwng75xgsx4i55xi2";
+  src = fetchFromGitea {
+    domain = "git.des.dev";
+    owner = "OpenPAM";
+    repo = "OpenPAM";
+    rev = "openpam-${version}";
+    sha256 = "03jxfpl30aw8x8nmir00cl21abm2h9kjvg5q3ipxiwlffndjiny0";
   };
+
+  nativeBuildInputs = [ autoreconfHook perl pkg-config ];
 
   meta = with lib; {
     homepage = "https://www.openpam.org";
