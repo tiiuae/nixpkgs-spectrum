@@ -1,8 +1,9 @@
 { lib, stdenv, fetchurl, pkg-config, bison, file, flex
 , asciidoc, libxslt, findXMLCatalogs, docbook_xml_dtd_45, docbook_xsl
 , libmnl, libnftnl, libpcap
-, gmp, jansson, readline
+, gmp, jansson
 , withDebugSymbols ? false
+, withCli ? true, readline
 , withPython ? false , python3
 , withXtables ? true , iptables
 }:
@@ -25,8 +26,9 @@ stdenv.mkDerivation rec {
 
   buildInputs = [
     libmnl libnftnl libpcap
-    gmp jansson readline
-  ] ++ optional withXtables iptables
+    gmp jansson
+  ] ++ optional withCli readline
+    ++ optional withXtables iptables
     ++ optional withPython python3;
 
   preConfigure = ''
@@ -35,7 +37,7 @@ stdenv.mkDerivation rec {
 
   configureFlags = [
     "--with-json"
-    "--with-cli=readline"  # TODO: maybe switch to editline
+    (lib.withFeatureAs withCli "cli" "readline")
   ] ++ optional (!withDebugSymbols) "--disable-debug"
     ++ optional (!withPython) "--disable-python"
     ++ optional withPython "--enable-python"
