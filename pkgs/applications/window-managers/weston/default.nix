@@ -1,5 +1,5 @@
 { lib, stdenv, fetchurl, fetchpatch, meson, ninja, pkg-config, wayland-scanner
-, python3, wayland, libGL, mesa, libxkbcommon, cairo, libxcb
+, python3, wayland, libGL, mesa, libxkbcommon, cairo, libxcb, seatd
 , libXcursor, xlibsWrapper, udev, libdrm, mtdev, libjpeg, pam, dbus, libinput, libevdev, pixman
 , colord, lcms2, pipewire ? null
 , pango ? null, libunwind ? null, freerdp ? null, vaapi ? null, libva ? null
@@ -19,7 +19,7 @@ stdenv.mkDerivation rec {
 
   nativeBuildInputs = [ meson ninja pkg-config /* wayland-scanner */ python3 ];
   buildInputs = [
-    wayland /* libGL mesa */ libxkbcommon cairo /* libxcb libXcursor xlibsWrapper udev */ libdrm
+    wayland libGL mesa libxkbcommon cairo /* libxcb libXcursor xlibsWrapper udev */ libdrm
     /* mtdev libjpeg pam dbus */ libinput libevdev /* pango libunwind freerdp vaapi libva */ pixman
     /* libwebp */ wayland-protocols
   #   colord lcms2 pipewire
@@ -29,10 +29,11 @@ stdenv.mkDerivation rec {
     "-Dimage-jpeg=false"
     "-Dimage-webp=false"
     "-Dlauncher-logind=false"
-    "-Drenderer-gl=false"
+    # "-Dlauncher-libseat=true"
+    # "-Drenderer-gl=false"
     "-Dbackend-drm-screencast-vaapi=false"
-    "-Dbackend-drm=false"
-    "-Dbackend-default=auto"
+    # "-Dbackend-drm=false"
+    "-Dbackend-default=drm"
     "-Dbackend-rdp=false"
     "-Dxwayland=false"
     "-Dcolor-management-lcms=false"
@@ -42,6 +43,8 @@ stdenv.mkDerivation rec {
     "-Dsimple-clients="
     "-Ddemo-clients=false"
     "-Dtest-junit-xml=false"
+    "-Dsystemd=false"
+    "-Dlauncher-logind=false"
   ];
 
   # mesonFlags= [

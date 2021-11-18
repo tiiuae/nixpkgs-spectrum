@@ -27,11 +27,11 @@ stdenv.mkDerivation rec {
     "MAN3DIR=$(man)/share/man/man3"
     "MAN8DIR=$(man)/share/man/man8"
     "SHLIBDIR=$(out)/lib"
-  ];
+  ] ++ lib.optional stdenv.hostPlatform.isStatic "DISABLE_SHARED=y";
 
   NIX_CFLAGS_COMPILE = "-Wno-error";
 
-  passthru = { inherit se_url; };
+  enableParallelBuilding = true;
 
   meta = with lib; {
     description = "SELinux binary policy manipulation library";
