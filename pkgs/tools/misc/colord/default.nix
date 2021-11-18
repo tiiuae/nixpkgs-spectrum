@@ -26,6 +26,7 @@
 , docbook_xml_dtd_412
 , gtk-doc
 , libxslt
+, enableDaemon ? true
 }:
 
 stdenv.mkDerivation rec {
@@ -56,6 +57,7 @@ stdenv.mkDerivation rec {
     "-Dlibcolordcompat=true"
     "-Dsane=true"
     "-Dvapi=true"
+    "-Ddaemon=${lib.boolToString enableDaemon}"
     "-Ddaemon_user=colord"
   ];
 
