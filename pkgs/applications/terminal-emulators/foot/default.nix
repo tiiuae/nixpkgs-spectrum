@@ -102,6 +102,10 @@ stdenv.mkDerivation rec {
     sha256 = "1d9bk8lhmw5lc8k0mw80g0vbwgxyh3gw5c7ppy3sir07s9y0y0fn";
   };
 
+  patches = [
+    ./Add-support-for-opening-an-existing-PTY.patch
+  ];
+
   depsBuildBuild = [
     pkg-config
   ];
