@@ -1,5 +1,9 @@
-{ lib, stdenv, fetchurl, lvm2, json_c, asciidoctor
-, openssl, libuuid, pkg-config, popt }:
+{ lib, stdenv, fetchurl, fetchpatch, pkg-config, asciidoctor
+, lvm2, json_c, openssl, libuuid, popt
+# Programs enabled by default upstream are implicitly enabled unless
+# manually set to false.
+, programs ? { cryptsetup-reencrypt = true; }
+}:
 
 stdenv.mkDerivation rec {
   pname = "cryptsetup";
@@ -34,7 +38,7 @@ stdenv.mkDerivation rec {
     # support, because the path still gets included in the binary even
     # though it isn't used.
     "--with-luks2-external-tokens-path=/"
-  ];
+  ] ++ (with lib; mapAttrsToList (flip enableFeature)) programs;
 
   nativeBuildInputs = [ pkg-config asciidoctor ];
   buildInputs = [ lvm2 json_c openssl libuuid popt ];
