@@ -6,7 +6,7 @@ mesonConfigurePhase() {
     fi
 
     # See multiple-outputs.sh and meson’s coredata.py
-    mesonFlags="\
+    mesonFlags="@crossFlags@ \
         --libdir=${!outputLib}/lib --libexecdir=${!outputLib}/libexec \
         --bindir=${!outputBin}/bin --sbindir=${!outputBin}/sbin \
         --includedir=${!outputInclude}/include \

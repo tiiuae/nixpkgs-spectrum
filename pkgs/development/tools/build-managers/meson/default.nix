@@ -1,4 +1,5 @@
 { lib
+, stdenv
 , fetchpatch
 , installShellFiles
 , ninja
@@ -71,7 +72,32 @@ python3.pkgs.buildPythonApplication rec {
     ./fix-gtkdoc-when-using-multiple-apple-frameworks.patch
   ];
 
-  setupHook = ./setup-hook.sh;
+  cpuFamily = with stdenv.targetPlatform;
+    /**/ if isAarch32 then "arm"
+    else if isAarch64 then "aarch64"
+    else if isx86_32  then "x86"
+    else if isx86_64  then "x86_64"
+    else parsed.cpu.family + builtins.toString parsed.cpu.bits;
+
+  crossFile = if stdenv.hostPlatform == stdenv.targetPlatform then null else
+    builtins.toFile "cross-file.conf" ''
+      [properties]
+      needs_exe_wrapper = true
+
+      [host_machine]
+      system = '${stdenv.targetPlatform.parsed.kernel.name}'
+      cpu_family = '${cpuFamily}'
+      cpu = '${stdenv.targetPlatform.parsed.cpu.name}'
+      endian = ${if stdenv.targetPlatform.isLittleEndian then "'little'" else "'big'"}
+
+      [binaries]
+      llvm-config = 'llvm-config-native'
+    '';
+
+  setupHook = substituteAll {
+    src = ./setup-hook.sh;
+    crossFlags = lib.optionalString (crossFile != null) "--cross-file=${crossFile}";
+  };
 
   # Meson included tests since 0.45, however they fail in Nixpkgs because they
   # require a typical building environment (including C compiler and stuff).
