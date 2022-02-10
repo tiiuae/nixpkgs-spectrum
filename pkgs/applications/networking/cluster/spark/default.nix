@@ -6,6 +6,7 @@
 , python3Packages
 , extraPythonPackages ? [ ]
 , coreutils
+, hadoopSupport ? true
 , hadoop
 , RSupport ? true
 , R
@@ -14,15 +15,16 @@
 with lib;
 
 let
-  spark = { pname, version, sha256 }:
+  spark = { pname, version, sha256, extraMeta ? {} }:
     stdenv.mkDerivation rec {
       inherit pname version;
+      jdk = if hadoopSupport then hadoop.jdk else jdk8;
       src = fetchzip {
         url = "mirror://apache/spark/${pname}-${version}/${pname}-${version}-bin-without-hadoop.tgz";
         sha256 = sha256;
       };
       nativeBuildInputs = [ makeWrapper ];
-      buildInputs = [ jdk8 python3Packages.python ]
+      buildInputs = [ jdk python3Packages.python ]
         ++ extraPythonPackages
         ++ optional RSupport R;
 
@@ -34,9 +36,11 @@ let
         cp $out/lib/${untarDir}/conf/log4j.properties{.template,}
 
         cat > $out/lib/${untarDir}/conf/spark-env.sh <<- EOF
-        export JAVA_HOME="${jdk8}"
+        export JAVA_HOME="${jdk}"
         export SPARK_HOME="$out/lib/${untarDir}"
+      '' + optionalString hadoopSupport ''
         export SPARK_DIST_CLASSPATH=$(${hadoop}/bin/hadoop classpath)
+      '' + ''
         export PYSPARK_PYTHON="${python3Packages.python}/bin/${python3Packages.python.executable}"
         export PYTHONPATH="\$PYTHONPATH:$PYTHONPATH"
         ${optionalString RSupport ''
@@ -63,8 +67,7 @@ let
         license = lib.licenses.asl20;
         platforms = lib.platforms.all;
         maintainers = with maintainers; [ thoughtpolice offline kamilchm illustris ];
-        repositories.git = "git://git.apache.org/spark.git";
-      };
+      } // extraMeta;
     };
 in
 {
@@ -75,12 +78,13 @@ in
   };
   spark_3_1 = spark rec {
     pname = "spark";
-    version = "3.1.2";
-    sha256 = "1bgh2y6jm7wqy6yc40rx68xkki31i3jiri2yixb1bm0i9pvsj9yf";
+    version = "3.1.3";
+    sha256 = "sha256-RIQyN5YjxFLfNIrETR3Vv99zsHxt77rhOXHIThCI2Y8=";
   };
   spark_2_4 = spark rec {
     pname = "spark";
     version = "2.4.8";
     sha256 = "1mkyq0gz9fiav25vr0dba5ivp0wh0mh7kswwnx8pvsmb6wbwyfxv";
+    extraMeta.knownVulnerabilities = [ "CVE-2021-38296" ];
   };
 }

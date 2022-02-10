@@ -1,4 +1,16 @@
-{ stdenv, lib, crystal, shards, git, pkg-config, which, linkFarm, fetchFromGitHub, installShellFiles }:
+{ stdenv
+, lib
+, crystal
+, shards
+, git
+, pkg-config
+, which
+, linkFarm
+, fetchgit
+, fetchFromGitHub
+, installShellFiles
+, removeReferencesTo
+}:
 
 {
   # Some projects do not include a lock file, so you can pass one
@@ -28,7 +40,10 @@ let
   crystalLib = linkFarm "crystal-lib" (lib.mapAttrsToList
     (name: value: {
       inherit name;
-      path = fetchFromGitHub value;
+      path =
+        if (builtins.hasAttr "url" value)
+        then fetchgit value
+        else fetchFromGitHub value;
     })
     (import shardsFile));
 
@@ -57,10 +72,17 @@ stdenv.mkDerivation (mkDerivationArgs // {
 
   PREFIX = placeholder "out";
 
-  buildInputs = args.buildInputs or [ ] ++ [ crystal ]
-    ++ lib.optional (format != "crystal") shards;
+  strictDeps = true;
+  buildInputs = args.buildInputs or [ ] ++ [ crystal ];
 
-  nativeBuildInputs = args.nativeBuildInputs or [ ] ++ [ git installShellFiles pkg-config which ];
+  nativeBuildInputs = args.nativeBuildInputs or [ ] ++ [
+    crystal
+    git
+    installShellFiles
+    removeReferencesTo
+    pkg-config
+    which
+  ] ++ lib.optional (format != "crystal") shards;
 
   buildPhase = args.buildPhase or (lib.concatStringsSep "\n" ([
     "runHook preBuild"
@@ -102,6 +124,7 @@ stdenv.mkDerivation (mkDerivationArgs // {
       installManPage man/*.?
     fi
   '') ++ [
+    "remove-references-to -t ${lib.getLib crystal} $out/bin/*"
     "runHook postInstall"
   ]));
 

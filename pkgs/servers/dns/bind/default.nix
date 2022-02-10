@@ -65,7 +65,7 @@ stdenv.mkDerivation rec {
     moveToOutput bin/nsupdate $dnsutils
 
     for f in "$lib/lib/"*.la "$dev/bin/"bind*-config; do
-      sed -i "$f" -e 's|-L${openssl.dev}|-L${openssl.out}|g'
+      sed -i "$f" -e 's|-L${openssl.dev}|-L${lib.getLib openssl}|g'
     done
   '';
 
@@ -77,7 +77,7 @@ stdenv.mkDerivation rec {
     homepage = "https://www.isc.org/bind/";
     description = "Domain name server";
     license = licenses.mpl20;
-
+    changelog = "https://downloads.isc.org/isc/bind9/cur/${lib.versions.majorMinor version}/CHANGES";
     maintainers = with maintainers; [ globin ];
     platforms = platforms.unix;
 

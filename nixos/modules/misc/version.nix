@@ -15,6 +15,26 @@ let
       mapAttrsToList (n: v: ''${n}=${escapeIfNeccessary (toString v)}'') attrs
     );
 
+  osReleaseContents = {
+    NAME = "NixOS";
+    ID = "nixos";
+    VERSION = "${cfg.release} (${cfg.codeName})";
+    VERSION_CODENAME = toLower cfg.codeName;
+    VERSION_ID = cfg.release;
+    BUILD_ID = cfg.version;
+    PRETTY_NAME = "NixOS ${cfg.release} (${cfg.codeName})";
+    LOGO = "nix-snowflake";
+    HOME_URL = "https://nixos.org/";
+    DOCUMENTATION_URL = "https://nixos.org/learn.html";
+    SUPPORT_URL = "https://nixos.org/community.html";
+    BUG_REPORT_URL = "https://github.com/NixOS/nixpkgs/issues";
+  };
+
+  initrdReleaseContents = osReleaseContents // {
+    PRETTY_NAME = "${osReleaseContents.PRETTY_NAME} (Initrd)";
+  };
+  initrdRelease = pkgs.writeText "initrd-release" (attrsToText initrdReleaseContents);
+
 in
 {
   imports = [
@@ -119,21 +139,22 @@ in
         DISTRIB_DESCRIPTION = "NixOS ${cfg.release} (${cfg.codeName})";
       };
 
-      "os-release".text = attrsToText {
-        NAME = "NixOS";
-        ID = "nixos";
-        VERSION = "${cfg.release} (${cfg.codeName})";
-        VERSION_CODENAME = toLower cfg.codeName;
-        VERSION_ID = cfg.release;
-        BUILD_ID = cfg.version;
-        PRETTY_NAME = "NixOS ${cfg.release} (${cfg.codeName})";
-        LOGO = "nix-snowflake";
-        HOME_URL = "https://nixos.org/";
-        DOCUMENTATION_URL = "https://nixos.org/learn.html";
-        SUPPORT_URL = "https://nixos.org/community.html";
-        BUG_REPORT_URL = "https://github.com/NixOS/nixpkgs/issues";
-      };
+      "os-release".text = attrsToText osReleaseContents;
     };
+
+    boot.initrd.systemd.contents = {
+      "/etc/os-release".source = initrdRelease;
+      "/etc/initrd-release".source = initrdRelease;
+    };
+
+    # We have to use `warnings` because when warning in the default of the option
+    # the warning would also be shown when building the manual since the manual
+    # has to evaluate the default.
+    #
+    # TODO Remove this and drop the default of the option so people are forced to set it.
+    # Doing this also means fixing the comment in nixos/modules/testing/test-instrumentation.nix
+    warnings = lib.optional (options.system.stateVersion.highestPrio == (lib.mkOptionDefault { }).priority)
+      "system.stateVersion is not set, defaulting to ${config.system.stateVersion}. Read why this matters on https://nixos.org/manual/nixos/stable/options.html#opt-system.stateVersion.";
   };
 
   # uses version info nixpkgs, which requires a full nixpkgs path

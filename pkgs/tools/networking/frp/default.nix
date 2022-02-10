@@ -2,16 +2,16 @@
 
 buildGoModule rec {
   pname = "frp";
-  version = "0.40.0";
+  version = "0.42.0";
 
   src = fetchFromGitHub {
     owner = "fatedier";
     repo = pname;
     rev = "v${version}";
-    sha256 = "sha256-W+88Fq9oYDBLCNp+6rc9jACJzky7FCZg/xLDowGGdm0=";
+    sha256 = "sha256-Ubc9jRZ+rkJ5TelizP6z9Hef6TkypfGMhZN+H4Awdqc=";
   };
 
-  vendorSha256 = "sha256-iBjMFOERWQ1aPn+2gEoI9og2ov2LlBVV1sLAZlvqZPM=";
+  vendorSha256 = "sha256-5ljUbEvynNo1AxGpJq9B0bTFgzVfgVZbsqXcPBERLMI=";
 
   doCheck = false;
 

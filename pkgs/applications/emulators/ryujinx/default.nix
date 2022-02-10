@@ -17,13 +17,13 @@
 
 buildDotnetModule rec {
   pname = "ryujinx";
-  version = "1.1.76"; # Based off of the official github actions builds: https://github.com/Ryujinx/Ryujinx/actions/workflows/release.yml
+  version = "1.1.100"; # Based off of the official github actions builds: https://github.com/Ryujinx/Ryujinx/actions/workflows/release.yml
 
   src = fetchFromGitHub {
     owner = "Ryujinx";
     repo = "Ryujinx";
-    rev = "e2ffa5a125fcbe8a25c73d8e04c08c08ef378860";
-    sha256 = "1rmiyjqwlsbzh9q7d12n72ka9adaby2rfcbn75sf47p5857yi3p9";
+    rev = "26a881176eb6513a98889648e0d5b7fe647cd0e3";
+    sha256 = "09wjygkdr9sr0hwv77czi0x5xw8y585k9pghdm5s3iqjn9gbb45k";
   };
 
   dotnet-sdk = dotnetCorePackages.sdk_6_0;
@@ -58,15 +58,18 @@ buildDotnetModule rec {
     pulseaudio
   ];
 
+  makeWrapperArgs = [
+    "--suffix PATH : ${lib.getBin ffmpeg}"
+  ];
+
   patches = [
     ./appdir.patch # Ryujinx attempts to write to the nix store. This patch redirects it to "~/.config/Ryujinx" on Linux.
   ];
 
   preInstall = ''
-    # Ryujinx tries to use ffmpeg from PATH
-    makeWrapperArgs+=(
-      --suffix PATH : ${lib.makeBinPath [ ffmpeg ]}
-    )
+    # workaround for https://github.com/Ryujinx/Ryujinx/issues/2349
+    mkdir -p $out/lib/sndio-6
+    ln -s ${sndio}/lib/libsndio.so $out/lib/sndio-6/libsndio.so.6
   '';
 
   preFixup = ''

@@ -8,16 +8,16 @@ let
 in
 
 rec {
-  thunderbird = common rec {
+  thunderbird = (common rec {
     pname = "thunderbird";
-    version = "91.7.0";
+    version = "91.8.1";
     application = "comm/mail";
     binaryName = pname;
     src = fetchurl {
       url = "mirror://mozilla/thunderbird/releases/${version}/source/thunderbird-${version}.source.tar.xz";
-      sha512 = "2afaee16f155edcb0bdb46ebe282a733cf041ec6f562aebd06f8b675e46917f6f500fcc532fc54d74f3f4b0b489a88934a2c6c304f849873de4bc2690b9056a0";
+      sha512 = "1591f3e9c76c1f2ea7fa5e194a7d030c8657a7855a95c8a177e8067c5aa838f0d8ca2652cd049b4bc88d0c9e604285a47b0c8316c190e2ceadfc1130d1e4de6c";
     };
-    patches = [
+    extraPatches = [
       # The file to be patched is different from firefox's `no-buildconfig-ffx90.patch`.
       ./no-buildconfig.patch
     ];
@@ -35,5 +35,7 @@ rec {
     updateScript = callPackage ./update.nix {
       attrPath = "thunderbird-unwrapped";
     };
+  }).override {
+    pgoSupport = false; # console.warn: feeds: "downloadFeed: network connection unavailable"
   };
 }

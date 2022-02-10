@@ -43,7 +43,7 @@ let
             maintainers = tested.meta.maintainers;
           };
 
-          machine = { ... }: {
+          nodes.machine = { ... }: {
             imports = [
               testConfig
             ] ++ optional withX11 ../common/x11.nix;
@@ -106,6 +106,5 @@ in
   malcontent = callInstalledTest ./malcontent.nix {};
   ostree = callInstalledTest ./ostree.nix {};
   pipewire = callInstalledTest ./pipewire.nix {};
-  power-profiles-daemon = callInstalledTest ./power-profiles-daemon.nix {};
   xdg-desktop-portal = callInstalledTest ./xdg-desktop-portal.nix {};
 }

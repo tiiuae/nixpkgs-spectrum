@@ -26,6 +26,7 @@ stdenv.mkDerivation rec {
   createFindlibDestdir = true;
 
   nativeBuildInputs = [ ocaml findlib ocamlbuild camlp4 ];
+  propagatedBuildInputs = [ camlp4 ];
 
   strictDeps = true;
 
@@ -35,7 +36,7 @@ stdenv.mkDerivation rec {
     inherit (src.meta) homepage;
     description = "A lexer generator for Unicode and OCaml";
     license = lib.licenses.mit;
-    platforms = ocaml.meta.platforms or [];
+    inherit (ocaml.meta) platforms;
     maintainers = [ lib.maintainers.roconnor ];
   };
 }

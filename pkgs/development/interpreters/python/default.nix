@@ -75,7 +75,7 @@ with pkgs;
           optionalExtensions = cond: as: if cond then as else [];
           python2Extension = import ../../../top-level/python2-packages.nix;
           extensions = lib.composeManyExtensions ((optionalExtensions (!self.isPy3k) [python2Extension]) ++ [ overrides ]);
-          aliases = self: super: lib.optionalAttrs (config.allowAliases or true) (import ../../../top-level/python-aliases.nix lib self super);
+          aliases = self: super: lib.optionalAttrs config.allowAliases (import ../../../top-level/python-aliases.nix lib self super);
         in lib.makeScopeWithSplicing
           pkgs.splicePackages
           pkgs.newScope
@@ -124,19 +124,19 @@ with pkgs;
       sourceVersion = {
         major = "3";
         minor = "9";
-        patch = "10";
+        patch = "12";
         suffix = "";
       };
-      sha256 = "sha256-Co+/tSh+vDoT6brz1U4I+gZ3j/7M9jEa74Ibs6ZYbMg=";
+      sha256 = "sha256-LNlLIGcOQVnG2atX+R2/JVuX2MGhRR0cNfTsGWit+XE=";
     };
     python310 = {
       sourceVersion = {
         major = "3";
         minor = "10";
-        patch = "2";
+        patch = "4";
         suffix = "";
       };
-      sha256 = "sha256-F946x9qfJRmqnWQ3jGA6c6DprVjf+ogS5FFgwIbeZMc=";
+      sha256 = "sha256-gL+SX1cdpDazUhCIbPefbrX6XWxXExa3NWg0NFH3ehk=";
     };
   };
 
@@ -199,9 +199,9 @@ in {
       major = "3";
       minor = "11";
       patch = "0";
-      suffix = "a6";
+      suffix = "a7";
     };
-    sha256 = "sha256-HFOi/3WHljPjDKwp0qpregEONVuV8L+axpG+zPX50So=";
+    sha256 = "sha256-t8Vt10wvRy1Ja1qNNWvWrZ75sD8mKIwyN9P/aYqwPXQ=";
     inherit (darwin) configd;
     inherit passthruFun;
   };
@@ -297,11 +297,6 @@ in {
     };
     sha256 = "sha256-Xe43x8PLixYAKPveOlkBxoBD36VFoWeUUCuJfUvEDX4="; # linux64
     pythonVersion = "3.8";
-    inherit passthruFun;
-  };
-
-  graalpython37 = callPackage ./graalpython/default.nix {
-    self = pythonInterpreters.graalpython37;
     inherit passthruFun;
   };
 

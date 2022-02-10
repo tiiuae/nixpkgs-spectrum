@@ -69,14 +69,14 @@ let
     six
   ];
 in mkDerivation rec {
-  version = "3.22.4";
+  version = "3.22.6";
   pname = "qgis-ltr-unwrapped";
 
   src = fetchFromGitHub {
     owner = "qgis";
     repo = "QGIS";
     rev = "final-${lib.replaceStrings [ "." ] [ "_" ] version}";
-    sha256 = "sha256-z2dCdaIJUKpZgJHtn1/qA07uMJpAWKL0cDx6B/n1Oxg=";
+    sha256 = "sha256-ACNEIU+kYmOa+/1nbFPTSDgyvviXqKP9kvL6aRykueY=";
   };
 
   passthru = {

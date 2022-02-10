@@ -1,18 +1,17 @@
-{ lib, stdenv, fetchurl, pkg-config, openssl, libuuid, libmd, zlib, ncurses }:
+{ lib, stdenv, fetchurl, pkg-config, openssl, libbsd, libuuid, libmd, zlib, ncurses }:
 
 stdenv.mkDerivation rec {
   pname = "got";
-  version = "0.67";
+  version = "0.69";
 
   src = fetchurl {
-    url =
-      "https://gameoftrees.org/releases/portable/got-portable-${version}.tar.gz";
-    sha256 = "sha256-37Ncljw2tibVRrynDlbxk7d5IS+5QypNFvKIkZ5JvME=";
+    url = "https://gameoftrees.org/releases/portable/got-portable-${version}.tar.gz";
+    sha256 = "1cnl0yk866wzjwgas587kvb08njq7db71b5xqsdrwd1varp010vm";
   };
 
   nativeBuildInputs = [ pkg-config ];
 
-  buildInputs = [ openssl libuuid libmd zlib ncurses ];
+  buildInputs = [ openssl libbsd libuuid libmd zlib ncurses ];
 
   doInstallCheck = true;
 

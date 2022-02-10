@@ -4,7 +4,7 @@
 , python3Packages, gettext
 , appstream-glib, gdk-pixbuf, glib, gobject-introspection, gspell, gtk3, gtksourceview4, gnome
 , steam, xdg-utils, pciutils, cabextract, wineWowPackages
-, freetype, p7zip, gamemode
+, freetype, p7zip, gamemode, mangohud
 , bottlesExtraLibraries ? pkgs: [ ] # extra packages to add to steam.run multiPkgs
 , bottlesExtraPkgs ? pkgs: [ ] # extra packages to add to steam.run targetPkgs
 }:
@@ -12,7 +12,7 @@
 let
   steam-run = (steam.override {
     # required by wine runner `caffe`
-    extraLibraries = pkgs: with pkgs; [ libunwind libusb1 ]
+    extraLibraries = pkgs: with pkgs; [ libunwind libusb1 gnutls ]
       ++ bottlesExtraLibraries pkgs;
     extraPkgs = pkgs: [ ]
       ++ bottlesExtraPkgs pkgs;
@@ -20,19 +20,23 @@ let
 in
 python3Packages.buildPythonApplication rec {
   pname = "bottles";
-  version = "2022.2.28-trento-1";
-  sha256 = "tE6YuuZZcs3RKxs1S6OoGt0CXz3oHUi/sopFN0iywds=";
+  version = "2022.5.2-trento";
 
   src = fetchFromGitHub {
     owner = "bottlesdevs";
     repo = pname;
     rev = version;
-    inherit sha256;
+    sha256 = "sha256-9auQm8rmySjPQmhueGMRj4DsQiKhCGtE97byc/h+v84=";
   };
 
   postPatch = ''
     chmod +x build-aux/meson/postinstall.py
     patchShebangs build-aux/meson/postinstall.py
+
+    substituteInPlace src/backend/wine/winecommand.py \
+      --replace \
+        'self.__get_runner()' \
+        '(lambda r: (f"${steam-run}/bin/steam-run {r}", r)[r == "wine" or r == "wine64"])(self.__get_runner())'
   '';
 
   nativeBuildInputs = [
@@ -80,17 +84,12 @@ python3Packages.buildPythonApplication rec {
     freetype
     p7zip
     gamemode # programs.gamemode.enable
+    mangohud
   ];
 
   format = "other";
   strictDeps = false; # broken with gobject-introspection setup hook, see https://github.com/NixOS/nixpkgs/issues/56943
   dontWrapGApps = true; # prevent double wrapping
-
-  preConfigure = ''
-    patchShebangs build-aux/meson/postinstall.py
-    substituteInPlace src/backend/wine/winecommand.py \
-      --replace '= f"{Paths.runners}' '= f"${steam-run}/bin/steam-run {Paths.runners}'
-  '';
 
   preFixup = ''
     makeWrapperArgs+=("''${gappsWrapperArgs[@]}")

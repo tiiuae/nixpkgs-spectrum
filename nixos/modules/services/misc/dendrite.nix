@@ -222,6 +222,13 @@ in
         for available options with which to populate settings.
       '';
     };
+    openRegistration = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Allow open registration without secondary verification (reCAPTCHA).
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -247,15 +254,13 @@ in
         WorkingDirectory = workingDir;
         RuntimeDirectory = "dendrite";
         RuntimeDirectoryMode = "0700";
+        LimitNOFILE = 65535;
         EnvironmentFile = lib.mkIf (cfg.environmentFile != null) cfg.environmentFile;
-        ExecStartPre =
-          if (cfg.environmentFile != null) then ''
-            ${pkgs.envsubst}/bin/envsubst \
-              -i ${configurationYaml} \
-              -o /run/dendrite/dendrite.yaml
-          '' else ''
-            ${pkgs.coreutils}/bin/cp ${configurationYaml} /run/dendrite/dendrite.yaml
-          '';
+        ExecStartPre = ''
+          ${pkgs.envsubst}/bin/envsubst \
+            -i ${configurationYaml} \
+            -o /run/dendrite/dendrite.yaml
+        '';
         ExecStart = lib.strings.concatStringsSep " " ([
           "${pkgs.dendrite}/bin/dendrite-monolith-server"
           "--config /run/dendrite/dendrite.yaml"
@@ -265,6 +270,8 @@ in
           "--https-bind-address :${builtins.toString cfg.httpsPort}"
           "--tls-cert ${cfg.tlsCert}"
           "--tls-key ${cfg.tlsKey}"
+        ] ++ lib.optionals cfg.openRegistration [
+          "--really-enable-open-registration"
         ]);
         ExecReload = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
         Restart = "on-failure";

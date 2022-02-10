@@ -17,15 +17,15 @@
 
 python3Packages.buildPythonApplication rec {
   pname = "bada-bib";
-  version = "0.6.0";
+  version = "0.6.2";
   format = "other";
   strictDeps = false; # https://github.com/NixOS/nixpkgs/issues/56943
 
   src = fetchFromGitHub {
     owner = "RogerCrocker";
     repo = "BadaBib";
-    rev = "v${version}";
-    sha256 = "sha256-gfZc3R8hrYy4Nco+XwG29lzZd537ByEgd3RL8h7f6DQ=";
+    rev = "refs/tags/v${version}";
+    sha256 = "sha256-3dXtBwqEqiXLjntmqLYeuwLv0RDb774+yOXc7vdf8+Y=";
   };
 
   nativeBuildInputs = [

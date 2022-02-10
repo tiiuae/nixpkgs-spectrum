@@ -11,6 +11,7 @@
 , newScope
 , lib
 , fetchurl
+, gcc10Stdenv
 }:
 
 # When adding a kernel:
@@ -159,7 +160,9 @@ in {
       ];
     };
 
-    linux_5_16 = callPackage ../os-specific/linux/kernel/linux-5.16.nix {
+    linux_5_16 = throw "linux 5.16 was removed because it has reached its end of life upstream";
+
+    linux_5_17 = callPackage ../os-specific/linux/kernel/linux-5.17.nix {
       kernelPatches = [
         kernelPatches.bridge_stp_helper
         kernelPatches.request_key_helper
@@ -179,7 +182,7 @@ in {
        else testing;
 
     linux_testing_bcachefs = callPackage ../os-specific/linux/kernel/linux-testing-bcachefs.nix rec {
-      kernel = linux_5_15;
+      kernel = linux_5_17;
       kernelPatches = kernel.kernelPatches;
    };
 
@@ -205,12 +208,22 @@ in {
       ];
     };
 
-    linux_xanmod = callPackage ../os-specific/linux/kernel/linux-xanmod.nix {
+    # This contains both the STABLE and EDGE variants of the XanMod kernel
+    xanmodKernels = callPackage ../os-specific/linux/kernel/xanmod-kernels.nix;
+
+    linux_xanmod = (xanmodKernels {
       kernelPatches = [
         kernelPatches.bridge_stp_helper
         kernelPatches.request_key_helper
       ];
-    };
+    }).stable;
+
+    linux_xanmod_latest = (xanmodKernels {
+      kernelPatches = [
+        kernelPatches.bridge_stp_helper
+        kernelPatches.request_key_helper
+      ];
+    }).edge;
 
     linux_libre = deblobKernel packageAliases.linux_default.kernel;
 
@@ -257,8 +270,6 @@ in {
         };
       });
     };
-
-    anbox = callPackage ../os-specific/linux/anbox/kmod.nix { };
 
     apfs = callPackage ../os-specific/linux/apfs { };
 
@@ -309,6 +320,8 @@ in {
     asus-wmi-sensors = callPackage ../os-specific/linux/asus-wmi-sensors {};
 
     ena = callPackage ../os-specific/linux/ena {};
+
+    kvdo = callPackage ../os-specific/linux/kvdo {};
 
     liquidtux = callPackage ../os-specific/linux/liquidtux {};
 
@@ -395,7 +408,7 @@ in {
 
     oci-seccomp-bpf-hook = if lib.versionAtLeast kernel.version "5.4" then callPackage ../os-specific/linux/oci-seccomp-bpf-hook { } else null;
 
-    perf = if lib.versionAtLeast kernel.version "3.12" then callPackage ../os-specific/linux/kernel/perf.nix { } else null;
+    perf = callPackage ../os-specific/linux/kernel/perf.nix { };
 
     phc-intel = if lib.versionAtLeast kernel.version "4.10" then callPackage ../os-specific/linux/phc-intel { } else null;
 
@@ -449,6 +462,8 @@ in {
 
     vmm_clock = callPackage ../os-specific/linux/vmm_clock { };
 
+    vmware = callPackage ../os-specific/linux/vmware { };
+
     wireguard = if lib.versionOlder kernel.version "5.6" then callPackage ../os-specific/linux/wireguard { } else null;
 
     x86_energy_perf_policy = callPackage ../os-specific/linux/x86_energy_perf_policy { };
@@ -469,7 +484,7 @@ in {
 
     can-isotp = callPackage ../os-specific/linux/can-isotp { };
 
-  } // lib.optionalAttrs (config.allowAliases or false) {
+  } // lib.optionalAttrs config.allowAliases {
     ati_drivers_x11 = throw "ati drivers are no longer supported by any kernel >=4.1"; # added 2021-05-18;
   });
 
@@ -484,7 +499,8 @@ in {
     linux_5_4 = recurseIntoAttrs (packagesFor kernels.linux_5_4);
     linux_5_10 = recurseIntoAttrs (packagesFor kernels.linux_5_10);
     linux_5_15 = recurseIntoAttrs (packagesFor kernels.linux_5_15);
-    linux_5_16 = recurseIntoAttrs (packagesFor kernels.linux_5_16);
+    linux_5_16 = throw "linux 5.16 was removed because it reached its end of life upstream"; # Added 2022-04-23
+    linux_5_17 = recurseIntoAttrs (packagesFor kernels.linux_5_17);
   };
 
   rtPackages = {
@@ -509,15 +525,26 @@ in {
 
     linux_hardened = recurseIntoAttrs (hardenedPackagesFor packageAliases.linux_default.kernel { });
 
-    linux_4_14_hardened = recurseIntoAttrs (hardenedPackagesFor kernels.linux_4_14 { });
-    linux_4_19_hardened = recurseIntoAttrs (hardenedPackagesFor kernels.linux_4_19 { });
-    linux_5_4_hardened = recurseIntoAttrs (hardenedPackagesFor kernels.linux_5_4 { });
+    linux_4_14_hardened = recurseIntoAttrs (hardenedPackagesFor kernels.linux_4_14 {
+      stdenv = gcc10Stdenv;
+      buildPackages = buildPackages // { stdenv = buildPackages.gcc10Stdenv; };
+    });
+    linux_4_19_hardened = recurseIntoAttrs (hardenedPackagesFor kernels.linux_4_19 {
+      stdenv = gcc10Stdenv;
+      buildPackages = buildPackages // { stdenv = buildPackages.gcc10Stdenv; };
+    });
+    linux_5_4_hardened = recurseIntoAttrs (hardenedPackagesFor kernels.linux_5_4 {
+      stdenv = gcc10Stdenv;
+      buildPackages = buildPackages // { stdenv = buildPackages.gcc10Stdenv; };
+    });
     linux_5_10_hardened = recurseIntoAttrs (hardenedPackagesFor kernels.linux_5_10 { });
     linux_5_15_hardened = recurseIntoAttrs (hardenedPackagesFor kernels.linux_5_15 { });
+    linux_5_17_hardened = recurseIntoAttrs (hardenedPackagesFor kernels.linux_5_17 { });
 
     linux_zen = recurseIntoAttrs (packagesFor kernels.linux_zen);
     linux_lqx = recurseIntoAttrs (packagesFor kernels.linux_lqx);
     linux_xanmod = recurseIntoAttrs (packagesFor kernels.linux_xanmod);
+    linux_xanmod_latest = recurseIntoAttrs (packagesFor kernels.linux_xanmod_latest);
 
     hardkernel_4_14 = recurseIntoAttrs (packagesFor kernels.linux_hardkernel_4_14);
 
@@ -529,7 +556,7 @@ in {
   packageAliases = {
     linux_default = if stdenv.hostPlatform.isi686 then packages.linux_5_10 else packages.linux_5_15;
     # Update this when adding the newest kernel major version!
-    linux_latest = packages.linux_5_16;
+    linux_latest = packages.linux_5_17;
     linux_mptcp = packages.linux_mptcp_95;
     linux_rt_default = packages.linux_rt_5_4;
     linux_rt_latest = packages.linux_rt_5_10;

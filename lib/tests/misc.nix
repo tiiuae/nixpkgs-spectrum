@@ -22,6 +22,15 @@ in
 
 runTests {
 
+# FLAKES
+
+  testCallLocklessFlake = {
+    expr = callLocklessFlake {
+      path = ./flakes/subflakeTest;
+      inputs = { subflake = ./flakes/subflakeTest/subflake; inherit callLocklessFlake; };
+    };
+    expected = { x = 1; outPath = ./flakes/subflakeTest; };
+  };
 
 # TRIVIAL
 
@@ -251,6 +260,68 @@ runTests {
     expected = "&quot;test&quot; &apos;test&apos; &lt; &amp; &gt;";
   };
 
+  testToShellVars = {
+    expr = ''
+      ${toShellVars {
+        STRing01 = "just a 'string'";
+        _array_ = [ "with" "more strings" ];
+        assoc."with some" = ''
+          strings
+          possibly newlines
+        '';
+        drv = {
+          outPath = "/drv";
+          foo = "ignored attribute";
+        };
+        path = /path;
+        stringable = {
+          __toString = _: "hello toString";
+          bar = "ignored attribute";
+        };
+      }}
+    '';
+    expected = ''
+      STRing01='just a '\'''string'\''''
+      declare -a _array_=('with' 'more strings')
+      declare -A assoc=(['with some']='strings
+      possibly newlines
+      ')
+      drv='/drv'
+      path='/path'
+      stringable='hello toString'
+    '';
+  };
+
+  testHasInfixFalse = {
+    expr = hasInfix "c" "abde";
+    expected = false;
+  };
+
+  testHasInfixTrue = {
+    expr = hasInfix "c" "abcde";
+    expected = true;
+  };
+
+  testHasInfixDerivation = {
+    expr = hasInfix "hello" (import ../.. { system = "x86_64-linux"; }).hello;
+    expected = true;
+  };
+
+  testHasInfixPath = {
+    expr = hasInfix "tests" ./.;
+    expected = true;
+  };
+
+  testHasInfixPathStoreDir = {
+    expr = hasInfix builtins.storeDir ./.;
+    expected = true;
+  };
+
+  testHasInfixToString = {
+    expr = hasInfix "a" { __toString = _: "a"; };
+    expected = true;
+  };
+
 # LISTS
 
   testFilter = {
@@ -471,6 +542,66 @@ runTests {
     '';
   };
 
+  testToINIWithGlobalSectionEmpty = {
+    expr = generators.toINIWithGlobalSection {} {
+      globalSection = {
+      };
+      sections = {
+      };
+    };
+    expected = ''
+    '';
+  };
+
+  testToINIWithGlobalSectionGlobalEmptyIsTheSameAsToINI =
+    let
+      sections = {
+        "section 1" = {
+          attribute1 = 5;
+          x = "Me-se JarJar Binx";
+        };
+        "foo" = {
+          "he\\h=he" = "this is okay";
+        };
+      };
+    in {
+      expr =
+        generators.toINIWithGlobalSection {} {
+            globalSection = {};
+            sections = sections;
+        };
+      expected = generators.toINI {} sections;
+  };
+
+  testToINIWithGlobalSectionFull = {
+    expr = generators.toINIWithGlobalSection {} {
+      globalSection = {
+        foo = "bar";
+        test = false;
+      };
+      sections = {
+        "section 1" = {
+          attribute1 = 5;
+          x = "Me-se JarJar Binx";
+        };
+        "foo" = {
+          "he\\h=he" = "this is okay";
+        };
+      };
+    };
+    expected = ''
+      foo=bar
+      test=false
+
+      [foo]
+      he\h\=he=this is okay
+
+      [section 1]
+      attribute1=5
+      x=Me-se JarJar Binx
+    '';
+  };
+
   /* right now only invocation check */
   testToJSONSimple =
     let val = {
@@ -649,6 +780,11 @@ runTests {
     expected = "foo";
   };
 
+  testSanitizeDerivationNameUnicode = testSanitizeDerivationName {
+    name = "fö";
+    expected = "f-";
+  };
+
   testSanitizeDerivationNameAscii = testSanitizeDerivationName {
     name = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
     expected = "-+--.-0123456789-=-?-ABCDEFGHIJKLMNOPQRSTUVWXYZ-_-abcdefghijklmnopqrstuvwxyz-";
@@ -691,7 +827,7 @@ runTests {
 
         locs = filter (o: ! o.internal) (optionAttrSetToDocList options);
       in map (o: o.loc) locs;
-    expected = [ [ "foo" ] [ "foo" "<name>" "bar" ] [ "foo" "bar" ] ];
+    expected = [ [ "_module" "args" ] [ "foo" ] [ "foo" "<name>" "bar" ] [ "foo" "bar" ] ];
   };
 
   testCartesianProductOfEmptySet = {
@@ -913,4 +1049,156 @@ runTests {
     };
   };
 
+  ## Levenshtein distance functions and co.
+  testCommonPrefixLengthEmpty = {
+    expr = strings.commonPrefixLength "" "hello";
+    expected = 0;
+  };
+
+  testCommonPrefixLengthSame = {
+    expr = strings.commonPrefixLength "hello" "hello";
+    expected = 5;
+  };
+
+  testCommonPrefixLengthDiffering = {
+    expr = strings.commonPrefixLength "hello" "hey";
+    expected = 2;
+  };
+
+  testCommonSuffixLengthEmpty = {
+    expr = strings.commonSuffixLength "" "hello";
+    expected = 0;
+  };
+
+  testCommonSuffixLengthSame = {
+    expr = strings.commonSuffixLength "hello" "hello";
+    expected = 5;
+  };
+
+  testCommonSuffixLengthDiffering = {
+    expr = strings.commonSuffixLength "test" "rest";
+    expected = 3;
+  };
+
+  testLevenshteinEmpty = {
+    expr = strings.levenshtein "" "";
+    expected = 0;
+  };
+
+  testLevenshteinOnlyAdd = {
+    expr = strings.levenshtein "" "hello there";
+    expected = 11;
+  };
+
+  testLevenshteinOnlyRemove = {
+    expr = strings.levenshtein "hello there" "";
+    expected = 11;
+  };
+
+  testLevenshteinOnlyTransform = {
+    expr = strings.levenshtein "abcdef" "ghijkl";
+    expected = 6;
+  };
+
+  testLevenshteinMixed = {
+    expr = strings.levenshtein "kitchen" "sitting";
+    expected = 5;
+  };
+
+  testLevenshteinAtMostZeroFalse = {
+    expr = strings.levenshteinAtMost 0 "foo" "boo";
+    expected = false;
+  };
+
+  testLevenshteinAtMostZeroTrue = {
+    expr = strings.levenshteinAtMost 0 "foo" "foo";
+    expected = true;
+  };
+
+  testLevenshteinAtMostOneFalse = {
+    expr = strings.levenshteinAtMost 1 "car" "ct";
+    expected = false;
+  };
+
+  testLevenshteinAtMostOneTrue = {
+    expr = strings.levenshteinAtMost 1 "car" "cr";
+    expected = true;
+  };
+
+  # We test levenshteinAtMost 2 particularly well because it uses a complicated
+  # implementation
+  testLevenshteinAtMostTwoIsEmpty = {
+    expr = strings.levenshteinAtMost 2 "" "";
+    expected = true;
+  };
+
+  testLevenshteinAtMostTwoIsZero = {
+    expr = strings.levenshteinAtMost 2 "abcdef" "abcdef";
+    expected = true;
+  };
+
+  testLevenshteinAtMostTwoIsOne = {
+    expr = strings.levenshteinAtMost 2 "abcdef" "abddef";
+    expected = true;
+  };
+
+  testLevenshteinAtMostTwoDiff0False = {
+    expr = strings.levenshteinAtMost 2 "abcdef" "aczyef";
+    expected = false;
+  };
+
+  testLevenshteinAtMostTwoDiff0Outer = {
+    expr = strings.levenshteinAtMost 2 "abcdef" "zbcdez";
+    expected = true;
+  };
+
+  testLevenshteinAtMostTwoDiff0DelLeft = {
+    expr = strings.levenshteinAtMost 2 "abcdef" "bcdefz";
+    expected = true;
+  };
+
+  testLevenshteinAtMostTwoDiff0DelRight = {
+    expr = strings.levenshteinAtMost 2 "abcdef" "zabcde";
+    expected = true;
+  };
+
+  testLevenshteinAtMostTwoDiff1False = {
+    expr = strings.levenshteinAtMost 2 "abcdef" "bddez";
+    expected = false;
+  };
+
+  testLevenshteinAtMostTwoDiff1DelLeft = {
+    expr = strings.levenshteinAtMost 2 "abcdef" "bcdez";
+    expected = true;
+  };
+
+  testLevenshteinAtMostTwoDiff1DelRight = {
+    expr = strings.levenshteinAtMost 2 "abcdef" "zbcde";
+    expected = true;
+  };
+
+  testLevenshteinAtMostTwoDiff2False = {
+    expr = strings.levenshteinAtMost 2 "hello" "hxo";
+    expected = false;
+  };
+
+  testLevenshteinAtMostTwoDiff2True = {
+    expr = strings.levenshteinAtMost 2 "hello" "heo";
+    expected = true;
+  };
+
+  testLevenshteinAtMostTwoDiff3 = {
+    expr = strings.levenshteinAtMost 2 "hello" "ho";
+    expected = false;
+  };
+
+  testLevenshteinAtMostThreeFalse = {
+    expr = strings.levenshteinAtMost 3 "hello" "Holla!";
+    expected = false;
+  };
+
+  testLevenshteinAtMostThreeTrue = {
+    expr = strings.levenshteinAtMost 3 "hello" "Holla";
+    expected = true;
+  };
 }

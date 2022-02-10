@@ -1,7 +1,7 @@
 { lib, buildGoModule, fetchFromGitLab, fetchurl }:
 
 let
-  version = "14.8.2";
+  version = "14.10.1";
 in
 buildGoModule rec {
   inherit version;
@@ -14,17 +14,18 @@ buildGoModule rec {
     "-X ${commonPackagePath}.REVISION=v${version}"
   ];
 
-  vendorSha256 = "1aa04hbavr0bclddp5adjwwj21sp46gbhjydxc3w7vs1siw0ivq2";
+  vendorSha256 = "0ag3pmcrxksgikdcvl9rv2s3kn7l0dj41pf2m9dq0g2a1j45nydn";
 
   src = fetchFromGitLab {
     owner = "gitlab-org";
     repo = "gitlab-runner";
     rev = "v${version}";
-    sha256 = "1zwr09lrrc3xx3sp00vs30ks0n77d7v0xkz0mz9jy2qdls9nfmrv";
+    sha256 = "1ph8byrh8kbg6s3gm5fakqk0ss6995pidgm664z3rwibr0h6m7sm";
   };
 
   patches = [
     ./fix-shell-path.patch
+    ./remove-bash-test.patch
   ];
 
   prePatch = ''
@@ -54,6 +55,6 @@ buildGoModule rec {
     license = licenses.mit;
     homepage = "https://about.gitlab.com/gitlab-ci/";
     platforms = platforms.unix ++ platforms.darwin;
-    maintainers = with maintainers; [ bachp zimbatm globin ];
+    maintainers = with maintainers; [ bachp zimbatm globin yayayayaka ];
   };
 }

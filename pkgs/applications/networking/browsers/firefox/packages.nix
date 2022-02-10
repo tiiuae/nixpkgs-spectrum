@@ -1,16 +1,12 @@
-{ stdenv, lib, callPackage, fetchurl, fetchpatch, nixosTests }:
-
-let
-  common = opts: callPackage (import ./common.nix opts) {};
-in
+{ stdenv, lib, callPackage, fetchurl, fetchpatch, nixosTests, buildMozillaMach }:
 
 rec {
-  firefox = common rec {
+  firefox = buildMozillaMach rec {
     pname = "firefox";
-    version = "98.0.1";
+    version = "100.0";
     src = fetchurl {
       url = "mirror://mozilla/firefox/releases/${version}/source/firefox-${version}.source.tar.xz";
-      sha512 = "1434ff775e6cdc6d9a75fa0e6d07a4680ada86ecfd7b65208c597ed765e847d900b68df355e6bea6461f6d86ee7a8b2ce3117f23826ad144bd87dfe64ee39b42";
+      sha512 = "29c56391c980209ff94c02a9aba18fe27bea188bdcbcf7fe0c0f27f61e823f4507a3ec343b27cb5285cf3901843e9cc4aca8e568beb623c4b69b7282e662b2aa";
     };
 
     meta = {
@@ -30,12 +26,12 @@ rec {
     };
   };
 
-  firefox-esr-91 = common rec {
+  firefox-esr-91 = buildMozillaMach rec {
     pname = "firefox-esr";
-    version = "91.7.1esr";
+    version = "91.9.0esr";
     src = fetchurl {
       url = "mirror://mozilla/firefox/releases/${version}/source/firefox-${version}.source.tar.xz";
-      sha512 = "c56aa38e9d706ff1f1838d2639dac82109dcffb54a7ea17326ae306604d78967ac32da13676756999bc1aa0bf50dc4e7072936ceb16e2e834bea48382ae4b48c";
+      sha512 = "fd69d489429052013d2c1b8b766a47920ecee62f0688505758f593b27ae66d6343b9107163749406251aedebdf836147e4d562415a811b04d7ab2ae31e32f133";
     };
 
     meta = {
@@ -53,30 +49,5 @@ rec {
       attrPath = "firefox-esr-91-unwrapped";
       versionSuffix = "esr";
     };
-  };
-
-  librewolf =
-  let
-    librewolf-src = callPackage ./librewolf { };
-  in
-  (common rec {
-    pname = "librewolf";
-    binaryName = "librewolf";
-    version = librewolf-src.packageVersion;
-    src = librewolf-src.firefox;
-    inherit (librewolf-src) extraConfigureFlags extraPostPatch extraPassthru;
-
-    meta = {
-      description = "A fork of Firefox, focused on privacy, security and freedom";
-      homepage = "https://librewolf.net/";
-      maintainers = with lib.maintainers; [ squalus ];
-      inherit (firefox.meta) platforms badPlatforms broken maxSilent license;
-    };
-    updateScript = callPackage ./librewolf/update.nix {
-      attrPath = "librewolf-unwrapped";
-    };
-  }).override {
-    crashreporterSupport = false;
-    enableOfficialBranding = false;
   };
 }

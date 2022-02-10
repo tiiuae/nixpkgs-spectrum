@@ -7,10 +7,10 @@ let archString = if stdenv.isAarch64 then "arm64"
     platformString = if stdenv.isDarwin then "osx"
                      else if stdenv.isLinux then "linux"
                      else throw "unsupported platform";
-    platformSha = if (stdenv.isDarwin && stdenv.isx86_64) then "sha256-h5zjn8wtgHmsJFiGq1rja6kZTZj3Q72W2kH3AexRDQs="
-                     else if (stdenv.isDarwin && stdenv.isAarch64) then "sha256-NHM9ZUpBJb59Oq0Ke7DcvaN+bZ9MjSpXBRu5Ng9OVZ0="
-                     else if (stdenv.isLinux && stdenv.isx86_64) then "sha256-kidPtDMkEZ/1r4WIApPZ/BsdJkolpSZ3f72JyDv3798="
-                     else if (stdenv.isLinux && stdenv.isAarch64) then "sha256-bUacA4DwjDNlIG7yooXxUGL9AysAogNWuQDvcTqo1sE="
+    platformSha = if (stdenv.isDarwin && stdenv.isx86_64) then "sha256-VF8C9JXVureJnMTyQD4SDeq/whyQOpk1dFtu6cJQRO8="
+                     else if (stdenv.isDarwin && stdenv.isAarch64) then "sha256-WqQQFdFTgIGi0fEtHjHf2rtP2l5YqdMQZH09O+34JTo="
+                     else if (stdenv.isLinux && stdenv.isx86_64) then "sha256-oKlX6NfTOxrxMkH+vWGMMTyVJqD2F2CB5qx+8EvNBE8="
+                     else if (stdenv.isLinux && stdenv.isAarch64) then "sha256-sWOmylDyy6n8SbnVDY5+wSJ2PPEd+vuoxbMU2iECyxY="
                      else throw "unsupported platform";
     platformLdLibraryPath = if stdenv.isDarwin then "DYLD_FALLBACK_LIBRARY_PATH"
                      else if stdenv.isLinux then "LD_LIBRARY_PATH"
@@ -20,7 +20,7 @@ let archString = if stdenv.isAarch64 then "arm64"
 in
 stdenv.mkDerivation rec {
   pname = "powershell";
-  version = "7.2.1";
+  version = "7.2.3";
 
   src = fetchzip {
     url = "https://github.com/PowerShell/PowerShell/releases/download/v${version}/powershell-${version}-${platformString}-${archString}.tar.gz";
@@ -29,7 +29,8 @@ stdenv.mkDerivation rec {
   };
 
   buildInputs = [ less ] ++ libraries;
-  nativeBuildInputs = [ autoPatchelfHook makeWrapper ];
+  nativeBuildInputs = [ makeWrapper ]
+    ++ lib.optional stdenv.isLinux autoPatchelfHook;
 
   installPhase =
   let
@@ -73,6 +74,7 @@ stdenv.mkDerivation rec {
     description = "Powerful cross-platform (Windows, Linux, and macOS) shell and scripting language based on .NET";
     homepage = "https://github.com/PowerShell/PowerShell";
     maintainers = with maintainers; [ yrashk srgom p3psi ];
+    mainProgram = "pwsh";
     platforms = [ "x86_64-darwin" "x86_64-linux" "aarch64-linux" "aarch64-darwin" ];
     license = with licenses; [ mit ];
   };

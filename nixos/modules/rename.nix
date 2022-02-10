@@ -69,6 +69,11 @@ with lib;
     '')
     (mkRemovedOptionModule [ "services" "quagga" ] "the corresponding package has been removed from nixpkgs")
     (mkRemovedOptionModule [ "services" "seeks" ] "")
+    (mkRemovedOptionModule [ "services" "ssmtp" ] ''
+      The ssmtp package and the corresponding module have been removed due to
+      the program being unmaintained. The options `programs.msmtp.*` can be
+      used instead.
+    '')
     (mkRemovedOptionModule [ "services" "venus" ] "The corresponding package was removed from nixpkgs.")
     (mkRemovedOptionModule [ "services" "wakeonlan"] "This module was removed in favor of enabling it with networking.interfaces.<name>.wakeOnLan")
     (mkRemovedOptionModule [ "services" "winstone" ] "The corresponding package was removed from nixpkgs.")
@@ -91,6 +96,7 @@ with lib;
     (mkRemovedOptionModule [ "services" "shellinabox" ] "The corresponding package was removed from nixpkgs.")
     (mkRemovedOptionModule [ "services" "gogoclient" ] "The corresponding package was removed from nixpkgs.")
     (mkRemovedOptionModule [ "services" "virtuoso" ] "The corresponding package was removed from nixpkgs.")
+    (mkRemovedOptionModule [ "services" "openfire" ] "The corresponding package was removed from nixpkgs.")
 
     # Do NOT add any option renames here, see top of the file
   ];

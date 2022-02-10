@@ -1,5 +1,5 @@
 { stdenv, lib
-, fetchgit
+, fetchFromGitHub
 , fetchYarnDeps
 , nodejs
 , yarn
@@ -18,8 +18,9 @@ in stdenv.mkDerivation rec {
   pname = "schildichat-web";
   inherit (pinData) version;
 
-  src = fetchgit {
-    url = "https://github.com/SchildiChat/schildichat-desktop/";
+  src = fetchFromGitHub {
+    owner = "SchildiChat";
+    repo = "schildichat-desktop";
     inherit (pinData) rev;
     sha256 = pinData.srcHash;
     fetchSubmodules = true;
@@ -77,13 +78,8 @@ in stdenv.mkDerivation rec {
   buildPhase = ''
     runHook preBuild
 
-    pushd matrix-react-sdk
-    ../element-web/node_modules/.bin/reskindex -h ../element-web/src/header
-    popd
-
     pushd element-web
     node scripts/copy-res.js
-    node_modules/.bin/reskindex -h ../element-web/src/header
     node_modules/.bin/webpack --progress --mode production
     popd
 

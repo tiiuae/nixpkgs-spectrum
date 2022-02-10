@@ -1,6 +1,6 @@
 { stdenv, lib, makeDesktopItem
-, unzip, libsecret, libXScrnSaver, libxshmfence, wrapGAppsHook
-, gtk2, atomEnv, at-spi2-atk, autoPatchelfHook
+, unzip, libsecret, libXScrnSaver, libxshmfence, wrapGAppsHook, makeWrapper
+, atomEnv, at-spi2-atk, autoPatchelfHook
 , systemd, fontconfig, libdbusmenu, glib, buildFHSUserEnvBubblewrap
 , writeShellScriptBin
 
@@ -64,14 +64,20 @@ let
     };
 
     buildInputs = [ libsecret libXScrnSaver libxshmfence ]
-      ++ lib.optionals (!stdenv.isDarwin) ([ gtk2 at-spi2-atk ] ++ atomEnv.packages);
+      ++ lib.optionals (!stdenv.isDarwin) ([ at-spi2-atk ] ++ atomEnv.packages);
 
-    runtimeDependencies = lib.optional (stdenv.isLinux) [ (lib.getLib systemd) fontconfig.lib libdbusmenu ];
+    runtimeDependencies = lib.optional stdenv.isLinux [ (lib.getLib systemd) fontconfig.lib libdbusmenu ];
 
-    nativeBuildInputs = [unzip] ++ lib.optionals (!stdenv.isDarwin) [ autoPatchelfHook wrapGAppsHook ];
+    nativeBuildInputs = [ unzip ]
+      ++ lib.optionals stdenv.isLinux [
+        autoPatchelfHook
+        nodePackages.asar
+        (wrapGAppsHook.override { makeBinaryWrapper = makeWrapper; })
+      ];
 
     dontBuild = true;
     dontConfigure = true;
+    noDumpEnvVars = true;
 
     installPhase = ''
       runHook preInstall
@@ -113,11 +119,17 @@ let
       # this is a fix for "save as root" functionality
       packed="resources/app/node_modules.asar"
       unpacked="resources/app/node_modules"
-      ${nodePackages.asar}/bin/asar extract "$packed" "$unpacked"
+      asar extract "$packed" "$unpacked"
       substituteInPlace $unpacked/@vscode/sudo-prompt/index.js \
         --replace "/usr/bin/pkexec" "/run/wrappers/bin/pkexec" \
         --replace "/bin/bash" "${bash}/bin/bash"
       rm -rf "$packed"
+
+      # without this symlink loading JsChardet, the library that is used for auto encoding detection when files.autoGuessEncoding is true,
+      # fails to load with: electron/js2c/renderer_init: Error: Cannot find module 'jschardet'
+      # and the window immediately closes which renders VSCode unusable
+      # see https://github.com/NixOS/nixpkgs/issues/152939 for full log
+      ln -rs "$unpacked" "$packed"
 
       # this fixes bundled ripgrep
       chmod +x resources/app/node_modules/@vscode/ripgrep/bin/rg

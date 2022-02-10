@@ -8,8 +8,6 @@
 # package customization
 # Note: enable* flags should not require full rebuilds (i.e. only affect the wrapper)
 , channel ? "stable"
-, gnomeSupport ? false, gnome2 ? null
-, gnomeKeyringSupport ? false
 , proprietaryCodecs ? true
 , enableWideVine ? false
 , ungoogled ? false # Whether to build chromium or ungoogled-chromium
@@ -46,7 +44,7 @@ let
 
     mkChromiumDerivation = callPackage ./common.nix ({
       inherit channel chromiumVersionAtLeast versionRange;
-      inherit gnome2 gnomeSupport gnomeKeyringSupport proprietaryCodecs
+      inherit proprietaryCodecs
               cupsSupport pulseSupport ungoogled;
       gnChromium = gn.overrideAttrs (oldAttrs: {
         inherit (upstream-info.deps.gn) version;
@@ -157,8 +155,8 @@ let
     else browser;
 
 in stdenv.mkDerivation {
-  name = lib.optionalString ungoogled "ungoogled-"
-    + "chromium${suffix}-${version}";
+  pname = lib.optionalString ungoogled "ungoogled-"
+    + "chromium${suffix}";
   inherit version;
 
   nativeBuildInputs = [

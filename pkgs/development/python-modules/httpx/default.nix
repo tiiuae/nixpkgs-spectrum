@@ -3,12 +3,19 @@
 , buildPythonPackage
 , pythonOlder
 , fetchFromGitHub
-, brotlicffi
 , certifi
 , charset-normalizer
 , httpcore
 , rfc3986
 , sniffio
+, h2
+, socksio
+, isPyPy
+, brotli
+, brotlicffi
+, click
+, rich
+, pygments
 , python
 , pytestCheckHook
 , pytest-asyncio
@@ -20,7 +27,7 @@
 
 buildPythonPackage rec {
   pname = "httpx";
-  version = "0.21.3";
+  version = "0.22.0";
   format = "setuptools";
 
   disabled = pythonOlder "3.6";
@@ -29,11 +36,10 @@ buildPythonPackage rec {
     owner = "encode";
     repo = pname;
     rev = version;
-    sha256 = "01069b0kj6vnb26xazlz06rj4yncy5nkq76pajvzx0pmpjkniiz9";
+    sha256 = "sha256-hQmQodGpVG23IZSsWV7rB1iB6QAudDao/8YshIgpmas=";
   };
 
   propagatedBuildInputs = [
-    brotlicffi
     certifi
     charset-normalizer
     httpcore
@@ -43,6 +49,13 @@ buildPythonPackage rec {
     async_generator
   ];
 
+  passthru.extras-require = {
+    http2 = [ h2 ];
+    socks = [ socksio ];
+    brotli = if isPyPy then [ brotlicffi ] else [ brotli ];
+    cli = [ click rich pygments ];
+  };
+
   checkInputs = [
     pytestCheckHook
     pytest-asyncio
@@ -50,7 +63,9 @@ buildPythonPackage rec {
     trustme
     typing-extensions
     uvicorn
-  ];
+  ] ++ passthru.extras-require.http2
+    ++ passthru.extras-require.brotli
+    ++ passthru.extras-require.socks;
 
   postPatch = ''
     substituteInPlace setup.py \

@@ -15,6 +15,10 @@ let
   malloc0ReturnsNullCrossFlag = lib.optional
     (stdenv.hostPlatform != stdenv.buildPlatform)
     "--enable-malloc0returnsnull";
+
+  brokenOnDarwin = pkg: pkg.overrideAttrs (attrs: {
+    meta = attrs.meta // { broken = isDarwin; };
+  });
 in
 self: super:
 {
@@ -351,6 +355,10 @@ self: super:
     outputs = [ "out" "dev" ];
   });
 
+  xcbutilerrors = super.xcbutilerrors.overrideAttrs (attrs: {
+    outputs = [ "out" "dev" ]; # mainly to get rid of propagating others
+  });
+
   xcbutilcursor = super.xcbutilcursor.overrideAttrs (attrs: {
     outputs = [ "out" "dev" ];
     meta = attrs.meta // { maintainers = [ lib.maintainers.lovek323 ]; };
@@ -384,13 +392,21 @@ self: super:
     configureFlags = [
       "--with-sdkdir=${placeholder "out"}/include/xorg"
     ];
+    meta = attrs.meta // {
+      broken = isDarwin; # never worked: https://hydra.nixos.org/job/nixpkgs/trunk/xorg.xf86inputmouse.x86_64-darwin
+    };
   });
 
   xf86inputjoystick = super.xf86inputjoystick.overrideAttrs (attrs: {
     configureFlags = [
       "--with-sdkdir=${placeholder "out"}/include/xorg"
     ];
+    meta = attrs.meta // {
+      broken = isDarwin; # never worked: https://hydra.nixos.org/job/nixpkgs/trunk/xorg.xf86inputjoystick.x86_64-darwin
+    };
   });
+
+  xf86inputkeyboard = brokenOnDarwin super.xf86inputkeyboard; # never worked: https://hydra.nixos.org/job/nixpkgs/trunk/xorg.xf86inputkeyboard.x86_64-darwin
 
   xf86inputlibinput = super.xf86inputlibinput.overrideAttrs (attrs: {
     outputs = [ "out" "dev" ];
@@ -419,6 +435,12 @@ self: super:
     };
   });
 
+  xf86inputvoid = brokenOnDarwin super.xf86inputvoid; # never worked: https://hydra.nixos.org/job/nixpkgs/trunk/xorg.xf86inputvoid.x86_64-darwin
+  xf86videodummy = brokenOnDarwin super.xf86videodummy; # never worked: https://hydra.nixos.org/job/nixpkgs/trunk/xorg.xf86videodummy.x86_64-darwin
+  xf86videosuncg6 = brokenOnDarwin super.xf86videosuncg6; # never worked: https://hydra.nixos.org/job/nixpkgs/trunk/xorg.xf86videosuncg6.x86_64-darwin
+  xf86videosunffb = brokenOnDarwin super.xf86videosunffb; # never worked: https://hydra.nixos.org/job/nixpkgs/trunk/xorg.xf86videosunffb.x86_64-darwin
+  xf86videosunleo = brokenOnDarwin super.xf86videosunleo; # never worked: https://hydra.nixos.org/job/nixpkgs/trunk/xorg.xf86videosunleo.x86_64-darwin
+
   # Obsolete drivers that don't compile anymore.
   xf86videoark     = super.xf86videoark.overrideAttrs     (attrs: { meta = attrs.meta // { broken = true; }; });
   xf86videogeode   = super.xf86videogeode.overrideAttrs   (attrs: { meta = attrs.meta // { broken = true; }; });
@@ -442,6 +464,17 @@ self: super:
 
   xf86videoati = super.xf86videoati.overrideAttrs (attrs: {
     NIX_CFLAGS_COMPILE = "-I${self.xorgserver.dev or self.xorgserver}/include/xorg";
+    nativeBuildInputs = with self; attrs.nativeBuildInputs ++ [ autoreconfHook utilmacros ];
+    patches = [
+      (fetchpatch {
+        url = "https://gitlab.freedesktop.org/xorg/driver/xf86-video-ati/-/commit/e0511968d04b42abf11bc0ffb387f143582bc144.patch";
+        sha256 = "sha256-79nqKuJRgMYXDEMB8IWxdmbxtI/m+Oca1wSLYeGMuEk=";
+      })
+    ];
+  });
+
+  xf86videonouveau = super.xf86videonouveau.overrideAttrs (attrs: {
+    nativeBuildInputs = with self; attrs.nativeBuildInputs ++ [ autoreconfHook utilmacros ];
   });
 
   xf86videovmware = super.xf86videovmware.overrideAttrs (attrs: {
@@ -620,7 +653,7 @@ self: super:
     in attrs //
     (let
       version = lib.getVersion attrs;
-      commonBuildInputs = attrs.buildInputs ++ [ xtrans ];
+      commonBuildInputs = attrs.buildInputs ++ [ libxcvt xtrans ];
       commonPropagatedBuildInputs = [
         zlib libGL libGLU dbus
         xorgproto
@@ -653,28 +686,10 @@ self: super:
       then {
         outputs = [ "out" "dev" ];
         patches = [
-          # https://lists.x.org/archives/xorg-announce/2021-December/003122.html
-          (fpgit "ebce7e2d80e7c80e1dda60f2f0bc886f1106ba60"
-            "sNi16FqN4rS4s8j5+PUVeOQBasccCkB5KvywP7xl28M=" "CVE-2021-4008")
-          (fpgit "b5196750099ae6ae582e1f46bd0a6dad29550e02"
-            "5hgzQXBBaJfhSTa9hs8K2N1fQ6+Vp8TTkertmQhkw8Y=" "CVE-2021-4009")
-          (fpgit "6c4c53010772e3cb4cb8acd54950c8eec9c00d21"
-            "1gGG9RpjLMi7Emwh13/z5CN1+ISLsPL3hJXP5gQcNkE=" "CVE-2021-4010")
-          (fpgit "e56f61c79fc3cee26d83cda0f84ae56d5979f768"
-            "e1KgSXGwwI3GgcYeWaF3KHPmkE4tf9VTqvfTYqRpysY=" "CVE-2021-4011")
-
           # The build process tries to create the specified logdir when building.
           #
           # We set it to /var/log which can't be touched from inside the sandbox causing the build to hard-fail
           ./dont-create-logdir-during-build.patch
-
-          # Fix e.g. xorg.xf86videovmware with libdrm 2.4.108
-          # TODO: remove with xorgserver >= 1.21
-          (fetchpatch {
-            name = "stdbool.patch";
-            url = "https://gitlab.freedesktop.org/xorg/xserver/-/commit/454b3a826edb5fc6d0fea3a9cfd1a5e8fc568747.diff";
-            sha256 = "1l9qg905jvlw3r0kx4xfw5m12pbs0782v2g3267d1m6q4m6fj1zy";
-          })
         ];
         buildInputs = commonBuildInputs ++ [ libdrm mesa ];
         propagatedBuildInputs = attrs.propagatedBuildInputs or [] ++ [ libpciaccess libepoxy ] ++ commonPropagatedBuildInputs ++ lib.optionals stdenv.isLinux [
@@ -835,14 +850,14 @@ self: super:
 
   xf86videointel = super.xf86videointel.overrideAttrs (attrs: {
     # the update script only works with released tarballs :-/
-    name = "xf86-video-intel-2019-12-09";
+    name = "xf86-video-intel-2021-01-15";
     src = fetchFromGitLab {
       domain = "gitlab.freedesktop.org";
       group = "xorg";
       owner = "driver";
       repo = "xf86-video-intel";
-      rev = "f66d39544bb8339130c96d282a80f87ca1606caf";
-      sha256 = "14rwbbn06l8qpx7s5crxghn80vgcx8jmfc7qvivh72d81r0kvywl";
+      rev = "31486f40f8e8f8923ca0799aea84b58799754564";
+      sha256 = "sha256-nqT9VZDb2kAC72ot9UCdwEkM1uuP9NriJePulzrdZlM=";
     };
     buildInputs = attrs.buildInputs ++ [ self.libXScrnSaver self.libXfixes self.libXv self.pixman ];
     nativeBuildInputs = attrs.nativeBuildInputs ++ [autoreconfHook self.utilmacros];

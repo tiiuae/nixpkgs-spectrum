@@ -21,13 +21,12 @@
 , gtk-doc
 , runCommand
 , isocodes
-, cldr-emoji-annotation
+, cldr-annotations
 , unicode-character-database
 , unicode-emoji
 , python3
 , json-glib
 , libnotify ? null
-, enablePython2Library ? false
 , enableUI ? true
 , withWayland ? false
 , libxkbcommon ? null
@@ -100,13 +99,11 @@ stdenv.mkDerivation rec {
     (enableFeature (dconf != null) "dconf")
     (enableFeature (libnotify != null) "libnotify")
     (enableFeature withWayland "wayland")
-    (enableFeature enablePython2Library "python-library")
-    (enableFeature enablePython2Library "python2") # XXX: python2 library does not work anyway
     (enableFeature enableUI "ui")
     "--enable-gtk4"
     "--enable-install-tests"
     "--with-unicode-emoji-dir=${unicode-emoji}/share/unicode/emoji"
-    "--with-emoji-annotation-dir=${cldr-emoji-annotation}/share/unicode/cldr/common/annotations"
+    "--with-emoji-annotation-dir=${cldr-annotations}/share/unicode/cldr/common/annotations"
     "--with-ucd-dir=${unicode-character-database}/share/unicode"
   ];
 

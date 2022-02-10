@@ -16,10 +16,6 @@ stdenv.mkDerivation rec {
     "--enable-colors256"
   ];
 
-  patches = [
-    ./0001-Send-resize-events-to-attached-ptys.patch
-  ];
-
   nativeBuildInputs = [
     autoreconfHook
   ];

@@ -5,26 +5,16 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "aardvark-dns";
-  version = "1.0.1";
+  version = "1.0.3";
 
   src = fetchFromGitHub {
     owner = "containers";
     repo = pname;
     rev = "v${version}";
-    sha256 = "sha256-6O/7GoGH0xNbTfIFeD5VLrifNFpHcxxG0bdq/YQb3Ew=";
+    sha256 = "sha256-m2uKTVRonnun+/V69RcPWkkRtDcoaiulMCQz0/CAdCw=";
   };
 
-  cargoHash = "sha256-YdHIyCJ00MKH8PL0osOqQIMwaws3+cOUwvhvA8mOp84=";
-
-  preBuild = ''
-    rm build.rs
-
-    export \
-      VERGEN_BUILD_SEMVER="${version}" \
-      VERGEN_BUILD_TIMESTAMP="$SOURCE_DATE_EPOCH" \
-      VERGEN_GIT_SHA="${src.rev}" \
-      VERGEN_RUSTC_HOST_TRIPLE=""
-  '';
+  cargoHash = "sha256-Z/OZgWlpwcdqns26ojTLPQBVNrwU/i86tZVx19sRUTw=";
 
   meta = with lib; {
     description = "Authoritative dns server for A/AAAA container records";

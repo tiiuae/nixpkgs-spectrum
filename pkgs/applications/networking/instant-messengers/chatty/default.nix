@@ -3,6 +3,7 @@
 , fetchFromGitLab
 , appstream-glib
 , desktop-file-utils
+, itstool
 , meson
 , ninja
 , pkg-config
@@ -11,7 +12,7 @@
 , evolution-data-server
 , feedbackd
 , glibmm
-, gnome
+, gnome-desktop
 , gspell
 , gtk3
 , json-glib
@@ -28,7 +29,7 @@
 
 stdenv.mkDerivation rec {
   pname = "chatty";
-  version = "0.6.1";
+  version = "0.6.4";
 
   src = fetchFromGitLab {
     domain = "source.puri.sm";
@@ -36,7 +37,7 @@ stdenv.mkDerivation rec {
     repo = "chatty";
     rev = "v${version}";
     fetchSubmodules = true;
-    hash = "sha256-AufxwuOibTx5OvLBVbJqay/mYLmcDpE2BgwVv6Y5IlY=";
+    hash = "sha256-uDuSx+tWv6DV93/99QUcUKZaWA9kNW8phHZhetYlG/M=";
   };
 
   postPatch = ''
@@ -46,6 +47,7 @@ stdenv.mkDerivation rec {
   nativeBuildInputs = [
     appstream-glib
     desktop-file-utils
+    itstool
     meson
     ninja
     pkg-config
@@ -57,7 +59,7 @@ stdenv.mkDerivation rec {
     evolution-data-server
     feedbackd
     glibmm
-    gnome.gnome-desktop
+    gnome-desktop
     gspell
     gtk3
     json-glib
@@ -73,7 +75,7 @@ stdenv.mkDerivation rec {
 
   preFixup = ''
     gappsWrapperArgs+=(
-      --prefix PURPLE_PLUGIN_PATH : ${pidgin.makePluginPath plugins}
+      --prefix PURPLE_PLUGIN_PATH : ${lib.escapeShellArg (pidgin.makePluginPath plugins)}
       ${lib.concatMapStringsSep " " (p: p.wrapArgs or "") plugins}
     )
   '';

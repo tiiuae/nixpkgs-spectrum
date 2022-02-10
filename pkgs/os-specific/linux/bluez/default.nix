@@ -1,6 +1,7 @@
 { stdenv
 , lib
 , fetchurl
+, fetchpatch
 , alsa-lib
 , dbus
 , ell
@@ -22,11 +23,11 @@
   ];
 in stdenv.mkDerivation rec {
   pname = "bluez";
-  version = "5.63";
+  version = "5.64";
 
   src = fetchurl {
     url = "mirror://kernel/linux/bluetooth/${pname}-${version}.tar.xz";
-    sha256 = "sha256-k0nhHoFguz1yCDXScSUNinQk02kPUonm22/gfMZsbXY=";
+    sha256 = "sha256-rkN+ZbazBwwZi8WwEJ/pzeueqjhzgOIHL53mX+ih3jQ=";
   };
 
   buildInputs = [
@@ -48,6 +49,17 @@ in stdenv.mkDerivation rec {
   ];
 
   outputs = [ "out" "dev" ] ++ lib.optional doCheck "test";
+
+  patches = [
+    # https://github.com/bluez/bluez/commit/0905a06410d4a5189f0be81e25eb3c3e8a2199c5
+    # which fixes https://github.com/bluez/bluez/issues/329
+    # and is already merged upstream and not yet in a release.
+    (fetchpatch {
+      name = "StateDirectory_and_ConfigurationDirectory.patch";
+      url = "https://github.com/bluez/bluez/commit/0905a06410d4a5189f0be81e25eb3c3e8a2199c5.patch";
+      sha256 = "sha256-MI6yPTiDLHsSTjLvNqtWnuy2xUMYpSat1WhMbeoedSM=";
+    })
+  ];
 
   postPatch = ''
     substituteInPlace tools/hid2hci.rules \
@@ -135,6 +147,5 @@ in stdenv.mkDerivation rec {
     homepage = "http://www.bluez.org/";
     license = with licenses; [ gpl2 lgpl21 ];
     platforms = platforms.linux;
-    repositories.git = "https://git.kernel.org/pub/scm/bluetooth/bluez.git";
   };
 }

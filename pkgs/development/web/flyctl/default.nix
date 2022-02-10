@@ -1,32 +1,51 @@
-{ buildGoModule, fetchFromGitHub, lib }:
+{ buildGoModule, fetchFromGitHub, lib, testers, flyctl }:
 
 buildGoModule rec {
   pname = "flyctl";
-  version = "0.0.302";
+  version = "0.0.323";
 
   src = fetchFromGitHub {
     owner = "superfly";
     repo = "flyctl";
     rev = "v${version}";
-    sha256 = "sha256-J6djiBT25cLAWWD0ZQBLju8pef0pG6iYRXUm/5nZm+8=";
+    sha256 = "sha256-7mPZ4p7fb49Lc+sx7/jEw+oFdFaYtEJcSzFS5haC6NM=";
   };
+
+  vendorSha256 = "sha256-dTeFeDdT44k1HxIEuvTU/A8xAa1VhVv4ZFbvg1PagPw=";
+
+  subPackages = [ "." ];
+
+  ldflags = [
+    "-s" "-w"
+    "-X github.com/superfly/flyctl/internal/buildinfo.commit=${src.rev}"
+    "-X github.com/superfly/flyctl/internal/buildinfo.buildDate=1970-01-01T00:00:00Z"
+    "-X github.com/superfly/flyctl/internal/buildinfo.environment=production"
+    "-X github.com/superfly/flyctl/internal/buildinfo.version=${version}"
+  ];
 
   preBuild = ''
     go generate ./...
   '';
 
-  subPackages = [ "." ];
+  preCheck = ''
+    HOME=$(mktemp -d)
+  '';
 
-  vendorSha256 = "sha256-ZtP/NgKCXpShCDe7Is/moCNPX7JmxcYMh47B+IgvY/4=";
+  postCheck = ''
+    go test ./... -ldflags="-X 'github.com/superfly/flyctl/internal/buildinfo.buildDate=1970-01-01T00:00:00Z'"
+  '';
 
-  doCheck = false;
-
-  ldflags = [ "-s" "-w" "-X github.com/superfly/flyctl/flyctl.Version=${version}" "-X github.com/superfly/flyctl/flyctl.Commit=${src.rev}" "-X github.com/superfly/flyctl/flyctl.BuildDate=1970-01-01T00:00:00+0000" "-X github.com/superfly/flyctl/flyctl.Environment=production" ];
+  passthru.tests.version = testers.testVersion {
+    package = flyctl;
+    command = "HOME=$(mktemp -d) flyctl version";
+    version = "v${flyctl.version}";
+  };
 
   meta = with lib; {
     description = "Command line tools for fly.io services";
+    downloadPage = "https://github.com/superfly/flyctl";
     homepage = "https://fly.io/";
     license = licenses.asl20;
-    maintainers = with maintainers; [ aaronjanse jsierles ];
+    maintainers = with maintainers; [ aaronjanse jsierles techknowlogick ];
   };
 }

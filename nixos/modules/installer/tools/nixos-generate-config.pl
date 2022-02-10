@@ -51,7 +51,9 @@ for (my $n = 0; $n < scalar @ARGV; $n++) {
         $n++;
         $rootDir = $ARGV[$n];
         die "$0: ‘--root’ requires an argument\n" unless defined $rootDir;
+        die "$0: no need to specify `/` with `--root`, it is the default\n" if $rootDir eq "/";
         $rootDir =~ s/\/*$//; # remove trailing slashes
+        $rootDir = File::Spec->rel2abs($rootDir); # resolve absolute path
     }
     elsif ($arg eq "--force") {
         $force = 1;
@@ -579,17 +581,19 @@ ${\join "", (map { "  $_\n" } (uniq @attrs))}}
 EOF
 
 sub generateNetworkingDhcpConfig {
+    # FIXME disable networking.useDHCP by default when switching to networkd.
     my $config = <<EOF;
-  # The global useDHCP flag is deprecated, therefore explicitly set to false here.
-  # Per-interface useDHCP will be mandatory in the future, so this generated config
-  # replicates the default behaviour.
-  networking.useDHCP = lib.mkDefault false;
+  # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
+  # (the default) this is the recommended approach. When using systemd-networkd it's
+  # still possible to use this option, but it's recommended to use it in conjunction
+  # with explicit per-interface declarations with `networking.interfaces.<interface>.useDHCP`.
+  networking.useDHCP = lib.mkDefault true;
 EOF
 
     foreach my $path (glob "/sys/class/net/*") {
         my $dev = basename($path);
         if ($dev ne "lo") {
-            $config .= "  networking.interfaces.$dev.useDHCP = lib.mkDefault true;\n";
+            $config .= "  # networking.interfaces.$dev.useDHCP = lib.mkDefault true;\n";
         }
     }
 
@@ -616,7 +620,12 @@ EOF
 if ($showHardwareConfig) {
     print STDOUT $hwConfig;
 } else {
-    $outDir = "$rootDir$outDir";
+    if ($outDir eq "/etc/nixos") {
+        $outDir = "$rootDir$outDir";
+    } else {
+        $outDir = File::Spec->rel2abs($outDir);
+        $outDir =~ s/\/*$//; # remove trailing slashes
+    }
 
     my $fn = "$outDir/hardware-configuration.nix";
     print STDERR "writing $fn...\n";

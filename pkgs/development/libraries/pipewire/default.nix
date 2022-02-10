@@ -2,7 +2,6 @@
 , lib
 , buildPackages
 , fetchFromGitLab
-, fetchpatch
 , removeReferencesTo
 , python3
 , meson
@@ -68,7 +67,7 @@ let
 
   self = stdenv.mkDerivation rec {
     pname = "pipewire";
-    version = "0.3.48";
+    version = "0.3.51";
 
     outputs = [
       "out"
@@ -86,7 +85,7 @@ let
       owner = "pipewire";
       repo = "pipewire";
       rev = version;
-      sha256 = "sha256-+gk/MJ9YimHBwN2I42DRP+I2OqBFFtZ81Fd/l89HcSk=";
+      sha256 = "sha256-k5OdKgkQUaelvrGS4KtO0MtSJg6cF2Nf8RrsR8Kf+C8=";
     };
 
     patches = [

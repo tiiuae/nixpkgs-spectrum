@@ -45,7 +45,7 @@ let
                   '!defined(__ANDROID__) && !defined(__OpenBSD__) && 0'
     '';
 
-    outputs = [ "bin" "dev" "out" "lib" "man" ] ++ lib.optional withDocs "doc";
+    outputs = [ "bin" "dev" "out" "man" ] ++ lib.optional withDocs "doc";
     setOutputFlags = false;
     separateDebugInfo =
       !stdenv.hostPlatform.isDarwin &&
@@ -69,6 +69,12 @@ let
         x86_64-linux = "./Configure linux-x86_64";
         x86_64-solaris = "./Configure solaris64-x86_64-gcc";
         riscv64-linux = "./Configure linux64-riscv64";
+        mips64el-linux =
+          if stdenv.hostPlatform.isMips64n64
+          then "./Configure linux64-mips64"
+          else if stdenv.hostPlatform.isMips64n32
+          then "./Configure linux-mips64"
+          else throw "unsupported ABI for ${stdenv.hostPlatform.system}";
       }.${stdenv.hostPlatform.system} or (
         if stdenv.hostPlatform == stdenv.buildPlatform
           then "./config"
@@ -94,7 +100,7 @@ let
     dontAddStaticConfigureFlags = true;
     configureFlags = [
       "shared" # "shared" builds both shared and static libraries
-      "--libdir=${placeholder "lib"}/lib"
+      "--libdir=lib"
       "--openssldir=etc/ssl"
     ] ++ lib.optionals withCryptodev [
       "-DHAVE_CRYPTODEV"
@@ -103,7 +109,6 @@ let
       ++ lib.optional enableSSL3 "enable-ssl3"
       ++ lib.optional (lib.versionAtLeast version "3.0.0") "enable-ktls"
       ++ lib.optional (lib.versionAtLeast version "1.1.0" && stdenv.hostPlatform.isAarch64) "no-afalgeng"
-      ++ lib.optional static "disable-dynamic-engine"
       # OpenSSL needs a specific `no-shared` configure flag.
       # See https://wiki.openssl.org/index.php/Compilation_and_Installation#Configure_Options
       # for a comprehensive list of configuration options.
@@ -116,19 +121,6 @@ let
       # command in other packages (respectively man-pages and moreutils).
       # This is done in ubuntu and archlinux, and possiibly many other distros.
       "MANSUFFIX=ssl"
-    ];
-
-    buildFlags = lib.optionals static [
-      # Even though engines are disabled in static builds, we have to
-      # override ENGINESDIR so the bin output doesn't end up with an
-      # reference to the lib output.
-      "ENGINESDIR=/"
-    ];
-
-    installFlags = lib.optionals static [
-      # Build system wants to be able to create the engines directory
-      # even though nothing will get installed to it.
-      "ENGINESDIR=/build/engines"
     ];
 
     enableParallelBuilding = true;
@@ -184,24 +176,10 @@ let
 
 in {
 
-  openssl_1_0_2 = common {
-    version = "1.0.2u";
-    sha256 = "ecd0c6ffb493dd06707d38b14bb4d8c2288bb7033735606569d8f90f89669d16";
-    patches = [
-      ./1.0.2/nix-ssl-cert-file.patch
-
-      (if stdenv.hostPlatform.isDarwin
-       then ./1.0.2/use-etc-ssl-certs-darwin.patch
-       else ./1.0.2/use-etc-ssl-certs.patch)
-    ] ++ lib.optionals (stdenv.hostPlatform.system == "aarch64-darwin") [
-      ./1.0.2/darwin64-arm64.patch
-    ];
-    extraMeta.knownVulnerabilities = [ "Support for OpenSSL 1.0.2 ended with 2019." ];
-  };
 
   openssl_1_1 = common rec {
-    version = "1.1.1n";
-    sha256 = "sha256-QNzrUaT2pSdb3g5r8g70uRv8Mu1XwFUuLo4VRjNysXo=";
+    version = "1.1.1o";
+    sha256 = "sha256-k4SisFcN2ANYhBRkZ3EV33he25QccSEfdQdtcv5rQ48=";
     patches = [
       ./1.1/nix-ssl-cert-file.patch
 
@@ -215,8 +193,8 @@ in {
   };
 
   openssl_3_0 = common {
-    version = "3.0.2";
-    sha256 = "sha256-mOkczq1NR1auPJzeXgkZGo5YbZ9NUIOOfsCdZBHf22M=";
+    version = "3.0.3";
+    sha256 = "sha256-7gB4rc7x3l8APGLIDMllJ3IWCcbzu0K3eV3zH4tVjAs=";
     patches = [
       ./3.0/nix-ssl-cert-file.patch
 

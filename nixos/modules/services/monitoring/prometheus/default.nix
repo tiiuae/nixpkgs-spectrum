@@ -3,6 +3,7 @@
 with lib;
 
 let
+  json = pkgs.formats.json { };
   cfg = config.services.prometheus;
 
   workingDir = "/var/lib/" + cfg.stateDir;
@@ -34,13 +35,7 @@ let
         promtool ${what} $out
       '' else file;
 
-  # Pretty-print JSON to a file
-  writePrettyJSON = name: x:
-    pkgs.runCommandLocal name { } ''
-      echo '${builtins.toJSON x}' | ${pkgs.jq}/bin/jq . > $out
-    '';
-
-  generatedPrometheusYml = writePrettyJSON "prometheus.yml" promConfig;
+  generatedPrometheusYml = json.generate "prometheus.yml" promConfig;
 
   # This becomes the main config file for Prometheus
   promConfig = {
@@ -74,7 +69,6 @@ let
     }"
     "--web.listen-address=${cfg.listenAddress}:${builtins.toString cfg.port}"
     "--alertmanager.notification-queue-capacity=${toString cfg.alertmanagerNotificationQueueCapacity}"
-    "--alertmanager.timeout=${toString cfg.alertmanagerTimeout}s"
   ] ++ optional (cfg.webExternalUrl != null) "--web.external-url=${cfg.webExternalUrl}"
     ++ optional (cfg.retentionTime != null) "--storage.tsdb.retention.time=${cfg.retentionTime}";
 
@@ -1563,6 +1557,8 @@ in
     (mkRenamedOptionModule [ "services" "prometheus2" ] [ "services" "prometheus" ])
     (mkRemovedOptionModule [ "services" "prometheus" "environmentFile" ]
       "It has been removed since it was causing issues (https://github.com/NixOS/nixpkgs/issues/126083) and Prometheus now has native support for secret files, i.e. `basic_auth.password_file` and `authorization.credentials_file`.")
+    (mkRemovedOptionModule [ "services" "prometheus" "alertmanagerTimeout" ]
+      "Deprecated upstream and no longer had any effect")
   ];
 
   options.services.prometheus = {
@@ -1716,14 +1712,6 @@ in
       default = 10000;
       description = ''
         The capacity of the queue for pending alert manager notifications.
-      '';
-    };
-
-    alertmanagerTimeout = mkOption {
-      type = types.int;
-      default = 10;
-      description = ''
-        Alert manager HTTP API timeout (in seconds).
       '';
     };
 

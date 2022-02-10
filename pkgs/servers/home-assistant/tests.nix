@@ -5,15 +5,16 @@
 let
   # some components' tests have additional dependencies
   extraCheckInputs = with home-assistant.python.pkgs; {
-    alexa = [ ha-av ];
-    camera = [ ha-av ];
+    alexa = [ av ];
+    camera = [ av ];
     cloud = [ mutagen ];
     config = [ pydispatcher ];
-    generic = [ ha-av ];
+    generic = [ av ];
     google_translate = [ mutagen ];
     lovelace = [ PyChromecast ];
-    nest = [ ha-av ];
+    nest = [ av ];
     onboarding = [ pymetno radios rpi-bad-power ];
+    tomorrowio = [ pyclimacell ];
     version = [ aioaseko ];
     voicerss = [ mutagen ];
     yandextts = [ mutagen ];
@@ -56,7 +57,11 @@ in lib.listToAttrs (map (component: lib.nameValuePair component (
     disabledTests = old.disabledTests ++ extraDisabledTests.${component} or [];
     disabledTestPaths = old.disabledTestPaths ++ extraDisabledTestPaths.${component} or [ ];
 
+    # components are more often racy than the core
+    dontUsePytestXdist = true;
+
     pytestFlagsArray = lib.remove "tests" old.pytestFlagsArray
+      ++ [ "--numprocesses=4" ]
       ++ extraPytestFlagsArray.${component} or [ ]
       ++ [ "tests/components/${component}" ];
 
@@ -67,8 +72,11 @@ in lib.listToAttrs (map (component: lib.nameValuePair component (
     meta = old.meta // {
       broken = lib.elem component [
         "airtouch4"
+        "bsblan"
         "dnsip"
-        "zwave"
+        "efergy"
+        "ssdp"
+        "subaru"
       ];
       # upstream only tests on Linux, so do we.
       platforms = lib.platforms.linux;

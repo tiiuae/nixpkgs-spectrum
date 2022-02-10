@@ -40,11 +40,11 @@ let
 in
 stdenv.mkDerivation rec {
   pname = "musl";
-  version = "1.2.2";
+  version = "1.2.3";
 
   src = fetchurl {
     url    = "https://musl.libc.org/releases/${pname}-${version}.tar.gz";
-    sha256 = "1p8r6bac64y98ln0wzmnixysckq3crca69ys7p16sy9d04i975lv";
+    sha256 = "sha256-fVsLYGJSHkYn4JnkydyCSNMqMChelZt+7Kp4DPjP1KQ=";
   };
 
   enableParallelBuilding = true;
@@ -66,10 +66,6 @@ stdenv.mkDerivation rec {
     (fetchurl {
       url = "https://raw.githubusercontent.com/openwrt/openwrt/87606e25afac6776d1bbc67ed284434ec5a832b4/toolchain/musl/patches/300-relative.patch";
       sha256 = "0hfadrycb60sm6hb6by4ycgaqc9sgrhh42k39v8xpmcvdzxrsq2n";
-    })
-    (fetchurl {
-      url = "https://inbox.vuxu.org/musl/20210915221155.3977763-4-hi@alyssa.is/raw";
-      sha256 = "12bsvxqgym2drppmmymnr20xwkc4kn1bq7d3rysyayr92025hih8";
     })
   ];
   CFLAGS = [ "-fstack-protector-strong" ]

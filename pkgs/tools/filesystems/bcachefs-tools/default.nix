@@ -22,13 +22,13 @@
 
 stdenv.mkDerivation {
   pname = "bcachefs-tools";
-  version = "unstable-2022-03-09";
+  version = "unstable-2022-05-02";
 
   src = fetchFromGitHub {
     owner = "koverstreet";
     repo = "bcachefs-tools";
-    rev = "3e2e3d468eed1d5ebbb4c6309d2eaebd081912c5";
-    sha256 = "1sb0dj2whlp3dxgf642z7yx7s8va5ah82zi6r4qni7l64qy1n554";
+    rev = "6f5afc0c12bbf56ffdabe5b2c5297aef255c4baa";
+    sha256 = "0483zhm3gmk6fd1pn815i3fixwlwsnks3817gn7n3idbbw0kg5ng";
   };
 
   postPatch = ''
@@ -58,6 +58,7 @@ stdenv.mkDerivation {
 
   passthru.tests = {
     smoke-test = nixosTests.bcachefs;
+    inherit (nixosTests.installer) bcachefsSimple bcachefsEncrypted bcachefsMulti;
   };
 
   enableParallelBuilding = true;

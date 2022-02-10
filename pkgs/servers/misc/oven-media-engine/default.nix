@@ -18,13 +18,13 @@
 
 stdenv.mkDerivation rec {
   pname = "oven-media-engine";
-  version = "0.13.1";
+  version = "0.13.2";
 
   src = fetchFromGitHub {
     owner = "AirenSoft";
     repo = "OvenMediaEngine";
     rev = "v${version}";
-    sha256 = "sha256-oWZ+o19bNR7/QuYTquRa3l7GfRLMEdyPtBUOwb2p3jA=";
+    sha256 = "0lkpidx4r890mcdk9m69j4iahm7qr7w34h11w1nmi132v0rqm0h8";
   };
 
   sourceRoot = "source/src";
@@ -53,7 +53,7 @@ stdenv.mkDerivation rec {
   meta = with lib; {
     description = "Open-source streaming video service with sub-second latency";
     homepage    = "https://ovenmediaengine.com";
-    license     = licenses.gpl2Only;
+    license     = licenses.agpl3Only;
     maintainers = with maintainers; [ lukegb ];
     platforms   = [ "x86_64-linux" ];
   };

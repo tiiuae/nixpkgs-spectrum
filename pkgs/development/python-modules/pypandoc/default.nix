@@ -4,11 +4,11 @@
 
 buildPythonPackage rec {
   pname = "pypandoc";
-  version = "1.7.3";
+  version = "1.7.5";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "sha256-Tv0vqKN9AAXdfQRMt/QuqeFB3wNTh1DsWu0XNZukTUc=";
+    sha256 = "sha256-gCwmquF7ZBNsbQBpSdjOGDp9TZ+9Ty0FHmb0+59FylA=";
   };
 
   patches = [

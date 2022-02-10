@@ -81,7 +81,7 @@ in {
     (mkRemovedOptionModule [ "services" "matrix-synapse" "verbose" ] "Use a log config instead." )
 
     # options that were moved into rfc42 style settigns
-    (mkRemovedOptionModule [ "services" "matrix-synapse" "app_service_config_files" ] "Use settings.app_service_config_Files instead" )
+    (mkRemovedOptionModule [ "services" "matrix-synapse" "app_service_config_files" ] "Use settings.app_service_config_files instead" )
     (mkRemovedOptionModule [ "services" "matrix-synapse" "database_args" ] "Use settings.database.args instead" )
     (mkRemovedOptionModule [ "services" "matrix-synapse" "database_name" ] "Use settings.database.args.database instead" )
     (mkRemovedOptionModule [ "services" "matrix-synapse" "database_type" ] "Use settings.database.name instead" )
@@ -141,7 +141,7 @@ in {
       enable = mkEnableOption "matrix.org synapse";
 
       configFile = mkOption {
-        type = types.str;
+        type = types.path;
         readOnly = true;
         description = ''
           Path to the configuration file on the target system. Useful to configure e.g. workers
@@ -296,6 +296,7 @@ in {
               default = if lib.versionAtLeast config.system.stateVersion "22.05"
                 then "${cfg.dataDir}/media_store"
                 else "${cfg.dataDir}/media";
+              defaultText = "${cfg.dataDir}/media_store for when system.stateVersion is at least 22.05, ${cfg.dataDir}/media when lower than 22.05";
               description = ''
                 Directory where uploaded images and attachments are stored.
               '';

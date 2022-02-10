@@ -142,13 +142,17 @@ in (kdeFrameworks // plasmaMobileGear // plasma5 // plasma5.thirdParty // kdeGea
 
   mapbox-gl-qml = libsForQt5.callPackage ../development/libraries/mapbox-gl-qml { };
 
+  maplibre-gl-native = callPackage ../development/libraries/maplibre-gl-native { };
+
   mauikit = callPackage ../development/libraries/mauikit { };
+
+  mauikit-accounts = callPackage ../development/libraries/mauikit-accounts { };
 
   mauikit-filebrowsing = callPackage ../development/libraries/mauikit-filebrowsing { };
 
-  mlt = callPackage ../development/libraries/mlt/qt-5.nix { };
+  mauikit-texteditor = callPackage ../development/libraries/mauikit-texteditor { };
 
-  openbr = callPackage ../development/libraries/openbr { };
+  mlt = callPackage ../development/libraries/mlt/qt-5.nix { };
 
   phonon = callPackage ../development/libraries/phonon { };
 
@@ -166,15 +170,12 @@ in (kdeFrameworks // plasmaMobileGear // plasma5 // plasma5.thirdParty // kdeGea
     suffix = "qt5";
   };
 
-  poppler_0_61 = callPackage ../development/libraries/poppler/0.61.nix {
-    lcms = pkgs.lcms2;
-    qt5Support = true;
-    suffix = "qt5";
-  };
-
   pulseaudio-qt = callPackage ../development/libraries/pulseaudio-qt { };
 
   qca-qt5 = callPackage ../development/libraries/qca-qt5 { };
+
+  # Until macOS SDK allows for Qt 5.15, darwin is limited to 2.3.2
+  qca-qt5_2_3_2 = callPackage ../development/libraries/qca-qt5/2.3.2.nix { };
 
   qcoro = callPackage ../development/libraries/qcoro { };
 
@@ -210,7 +211,9 @@ in (kdeFrameworks // plasmaMobileGear // plasma5 // plasma5.thirdParty // kdeGea
 
   quazip = callPackage ../development/libraries/quazip { };
 
-  qwt = callPackage ../development/libraries/qwt/6.nix { };
+  qwt = callPackage ../development/libraries/qwt/default.nix { };
+
+  qwt6_1 = callPackage ../development/libraries/qwt/6_1.nix { };
 
   soqt = callPackage ../development/libraries/soqt { };
 
@@ -226,4 +229,5 @@ in (kdeFrameworks // plasmaMobileGear // plasma5 // plasma5.thirdParty // kdeGea
 
   soundkonverter = callPackage ../applications/audio/soundkonverter {};
 
+  yuview = callPackage ../applications/video/yuview { };
 })))

@@ -141,7 +141,7 @@ in
           GDM_X_SERVER_EXTRA_ARGS = toString
             (filter (arg: arg != "-terminate") cfg.xserverArgs);
           # GDM is needed for gnome-login.session
-          XDG_DATA_DIRS = "${gdm}/share:${cfg.sessionData.desktops}/share";
+          XDG_DATA_DIRS = "${gdm}/share:${cfg.sessionData.desktops}/share:${pkgs.gnome.gnome-control-center}/share";
         } // optionalAttrs (xSessionWrapper != null) {
           # Make GDM use this wrapper before running the session, which runs the
           # configured setupCommands. This relies on a patched GDM which supports
@@ -298,7 +298,7 @@ in
 
         session  required       pam_succeed_if.so audit quiet_success user = gdm
         session  required       pam_env.so conffile=/etc/pam/environment readenv=0
-        session  optional       ${pkgs.systemd}/lib/security/pam_systemd.so
+        session  optional       ${config.systemd.package}/lib/security/pam_systemd.so
         session  optional       pam_keyinit.so force revoke
         session  optional       pam_permit.so
       '';
