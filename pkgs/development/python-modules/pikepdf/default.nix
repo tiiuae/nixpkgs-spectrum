@@ -25,7 +25,7 @@
 
 buildPythonPackage rec {
   pname = "pikepdf";
-  version = "5.1.2";
+  version = "5.1.3";
   format = "setuptools";
 
   disabled = pythonOlder "3.7";
@@ -37,10 +37,10 @@ buildPythonPackage rec {
     # The content of .git_archival.txt is substituted upon tarball creation,
     # which creates indeterminism if master no longer points to the tag.
     # See https://github.com/jbarlow83/OCRmyPDF/issues/841
-    extraPostFetch = ''
+    postFetch = ''
       rm "$out/.git_archival.txt"
     '';
-    hash = "sha256-VR2/+XCQb62FdkGZBxP2XTqatdFYZO1ngb8gvoJEvzs=";
+    hash = "sha256-jkAwc1bQ1jRDf/qY+xAjiLXXO98qKjyX+J7Lu4tYWoI=";
   };
 
   patches = [
@@ -50,6 +50,10 @@ buildPythonPackage rec {
       mudraw = "${lib.getBin mupdf}/bin/mudraw";
     })
   ];
+
+  postPatch = ''
+    sed -i 's|\S*/opt/homebrew.*|pass|' setup.py
+  '';
 
   SETUPTOOLS_SCM_PRETEND_VERSION = version;
 

@@ -100,6 +100,7 @@ stdenv.mkDerivation rec {
   outputs = [ "out" "doc" "man" "dev" ];
 
   meta = with lib; {
+    broken = stdenv.isDarwin;
     description = "A typesetting system";
     longDescription = ''
       SILE is a typesetting system; its job is to produce beautiful
@@ -114,7 +115,6 @@ stdenv.mkDerivation rec {
     homepage = "https://sile-typesetter.org";
     changelog = "https://github.com/sile-typesetter/sile/raw/v${version}/CHANGELOG.md";
     platforms = platforms.unix;
-    broken = stdenv.isDarwin;   # https://github.com/NixOS/nixpkgs/issues/23018
     maintainers = with maintainers; [ doronbehar alerque ];
     license = licenses.mit;
   };

@@ -63,10 +63,11 @@ let
           kalbasit
           marsam
           maxeaubrey
-          techknowlogick
           timstott
+          zimbatm
           zowoq
-        ] ++ teams.numtide.members;
+          techknowlogick
+        ];
       };
     } // attrs');
 
@@ -191,9 +192,9 @@ rec {
   };
 
   terraform_1 = mkTerraform {
-    version = "1.1.9";
-    sha256 = "sha256-6dyP3Y5cK+/qLoC2QPZW3QNgqOeVXegC06Pa7pSv1iE=";
-    vendorSha256 = "sha256-YI/KeoOIxgCAS3Q6SXaW8my0PyFD+pyksshQEAknsz4=";
+    version = "1.2.2";
+    sha256 = "sha256-LkRCumyNHVBSsXRp1ovNMGCeidK/jVCjh9H1HSE1Lm8=";
+    vendorSha256 = "sha256-CVgAmPM0nt0Wx+N0qs+IO5KwCWnbfif70EHjBi0bIsQ=";
     patches = [ ./provider-path-0_15.patch ];
     passthru = { inherit plugins; };
   };

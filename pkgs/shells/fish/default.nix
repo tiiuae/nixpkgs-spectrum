@@ -186,6 +186,8 @@ let
       rm tests/pexpects/exit_handlers.py
     '';
 
+    outputs = [ "out" "doc" ];
+    strictDeps = true;
     nativeBuildInputs = [
       cmake
       gettext
@@ -198,7 +200,7 @@ let
     ];
 
     cmakeFlags = [
-      "-DCMAKE_INSTALL_DOCDIR=${placeholder "out"}/share/doc/fish"
+      "-DCMAKE_INSTALL_DOCDIR=${placeholder "doc"}/share/doc/fish"
     ] ++ lib.optionals stdenv.isDarwin [
       "-DMAC_CODESIGN_ID=OFF"
     ];

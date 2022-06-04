@@ -10,6 +10,7 @@
 , pythonOlder
 , pytz
 , six
+, werkzeug
 }:
 
 buildPythonPackage rec {

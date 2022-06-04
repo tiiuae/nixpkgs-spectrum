@@ -178,6 +178,13 @@ stdenv.mkDerivation {
     # need (AFAICT).
     # See https://github.com/systemd/systemd/pull/20479 for upstream discussion.
     ./0019-core-handle-lookup-paths-being-symlinks.patch
+
+    # fixes reproducability of dbus xml files
+    # Should no longer be necessary with v251.
+    (fetchpatch {
+      url = "https://github.com/systemd/systemd/pull/22174.patch";
+      sha256 = "sha256-RVhxUEUiISgRlIP/AhU+w1VHfDQw2W16cFl2TXXyxno=";
+    })
   ] ++ lib.optional stdenv.hostPlatform.isMusl (
     let
       oe-core = fetchzip {
@@ -333,11 +340,12 @@ stdenv.mkDerivation {
       exit 1
     fi
   ''
-  # Finally patch shebangs that might need patching.
-  # Should no longer be necessary with v251.
-  # https://github.com/systemd/systemd/pull/21749
+  # Finally, patch shebangs in scripts used at build time. This must not patch
+  # scripts that will end up in the output, to avoid build platform references
+  # when cross-compiling.
   + ''
-    patchShebangs .
+    shopt -s extglob
+    patchShebangs tools test src/!(rpm)
   '';
 
   outputs = [ "out" "man" "dev" ];
@@ -596,11 +604,6 @@ stdenv.mkDerivation {
       ${lib.concatStringsSep "\n" (lib.flatten (map mkSubstitute binaryReplacements))}
       ${lib.concatMapStringsSep "\n" mkEnsureSubstituted binaryReplacements}
 
-
-      for dir in tools src/resolve test src/test src/shared; do
-        patchShebangs $dir
-      done
-
       substituteInPlace src/libsystemd/sd-journal/catalog.c \
         --replace /usr/lib/systemd/catalog/ $out/lib/systemd/catalog/
     '';
@@ -641,12 +644,6 @@ stdenv.mkDerivation {
   '';
 
   postInstall = ''
-    # sysinit.target: Don't depend on
-    # systemd-tmpfiles-setup.service. This interferes with NixOps's
-    # send-keys feature (since sshd.service depends indirectly on
-    # sysinit.target).
-    mv $out/lib/systemd/system/sysinit.target.wants/systemd-tmpfiles-setup-dev.service $out/lib/systemd/system/multi-user.target.wants/
-
     mkdir -p $out/example/systemd
     mv $out/lib/{modules-load.d,binfmt.d,sysctl.d,tmpfiles.d} $out/example
     mv $out/lib/systemd/{system,user} $out/example/systemd
@@ -687,7 +684,7 @@ stdenv.mkDerivation {
     # runtime; otherwise we can't and we need to reboot.
     interfaceVersion = 2;
 
-    inherit withCryptsetup util-linux kmod kbd;
+    inherit withCryptsetup withHostnamed withImportd withLocaled withMachined withTimedated util-linux kmod kbd;
 
     tests = {
       inherit (nixosTests) switchTest;

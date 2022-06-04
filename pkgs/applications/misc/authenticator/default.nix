@@ -9,7 +9,7 @@
 , ninja
 , pkg-config
 , rustPlatform
-, wrapGAppsHook
+, wrapGAppsHook4
 , gdk-pixbuf
 , glib
 , gst_all_1
@@ -25,20 +25,20 @@
 
 stdenv.mkDerivation rec {
   pname = "authenticator";
-  version = "4.1.1";
+  version = "4.1.2";
 
   src = fetchFromGitLab {
     domain = "gitlab.gnome.org";
     owner = "World";
     repo = "Authenticator";
     rev = version;
-    hash = "sha256-wl7wyj0vVDkOB7XKQFOEFzCmffTsrUsaM83fWgZ6tG0=";
+    hash = "sha256-YxmVqL9dseImN3LfkRz+Au+IaKpTepHl3CNx2Ue7N24=";
   };
 
   cargoDeps = rustPlatform.fetchCargoTarball {
     inherit src;
     name = "${pname}-${version}";
-    hash = "sha256-3SzemDjLsZUXPPtSlDMBQXQf5P3Sz8caJL73mHRv1js=";
+    hash = "sha256-ub2PryALI7QXEG0djkPVQQCgZn5M5VoGo6ETSkvEjX0=";
   };
 
   nativeBuildInputs = [
@@ -48,7 +48,7 @@ stdenv.mkDerivation rec {
     meson
     ninja
     pkg-config
-    wrapGAppsHook
+    wrapGAppsHook4
   ] ++ (with rustPlatform; [
     cargoSetupHook
     rust.cargo

@@ -5,7 +5,7 @@
 , fetchPypi
 , alembic
 , aniso8601
-, Babel
+, babel
 , blinker
 , cachetools
 , click
@@ -19,7 +19,7 @@
 , flask-restful
 , flask_sqlalchemy
 , flask-talisman
-, flask_wtf
+, flask-wtf
 , debts
 , idna
 , itsdangerous
@@ -54,7 +54,7 @@ buildPythonPackage rec {
 
   propagatedBuildInputs = [
     aniso8601
-    Babel
+    babel
     blinker
     cachetools
     click
@@ -64,7 +64,7 @@ buildPythonPackage rec {
     flask
     flask_mail
     flask_migrate
-    flask_wtf
+    flask-wtf
     flask-babel
     flask-cors
     flask-restful

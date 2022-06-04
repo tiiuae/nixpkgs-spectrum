@@ -93,6 +93,8 @@ let
 
     brisk-reconciler = callPackage ../development/ocaml-modules/brisk-reconciler { };
 
+    bwd = callPackage ../development/ocaml-modules/bwd { };
+
     bz2 = callPackage ../development/ocaml-modules/bz2 { };
 
     ca-certs = callPackage ../development/ocaml-modules/ca-certs { };
@@ -177,7 +179,13 @@ let
 
     cil = callPackage ../development/ocaml-modules/cil { };
 
-    cmdliner = callPackage ../development/ocaml-modules/cmdliner { };
+    cmdliner_1_0 = callPackage ../development/ocaml-modules/cmdliner/1_0.nix { };
+
+    cmdliner_1_1 = callPackage ../development/ocaml-modules/cmdliner/1_1.nix { };
+
+    # The 1.1.0 release broke a lot of packages and is not compatible with
+    # OCaml < 4.08.
+    cmdliner = cmdliner_1_0;
 
     cohttp = callPackage ../development/ocaml-modules/cohttp { };
 
@@ -449,6 +457,8 @@ let
     functoria-runtime = callPackage ../development/ocaml-modules/functoria/runtime.nix { };
 
     functory = callPackage ../development/ocaml-modules/functory { };
+
+    gd4o = callPackage ../development/ocaml-modules/gd4o { };
 
     gen = callPackage ../development/ocaml-modules/gen { };
 
@@ -1157,6 +1167,8 @@ let
 
     tcpip = callPackage ../development/ocaml-modules/tcpip { };
 
+    tiny_httpd = callPackage ../development/ocaml-modules/tiny_httpd { };
+
     tsort = callPackage ../development/ocaml-modules/tsort { };
 
     tuntap = callPackage ../development/ocaml-modules/tuntap { };
@@ -1281,9 +1293,6 @@ let
 
     rfc7748 = callPackage ../development/ocaml-modules/rfc7748 { };
 
-    ezresto = callPackage ../development/ocaml-modules/resto/ezresto.nix { };
-    ezresto-directory = callPackage ../development/ocaml-modules/resto/ezresto-directory.nix { };
-
     resto = callPackage ../development/ocaml-modules/resto { };
     resto-acl = callPackage ../development/ocaml-modules/resto/acl.nix { };
     resto-cohttp = callPackage ../development/ocaml-modules/resto/cohttp.nix { };
@@ -1311,8 +1320,6 @@ let
     safepass = callPackage ../development/ocaml-modules/safepass { };
 
     sedlex = callPackage ../development/ocaml-modules/sedlex { };
-
-    sedlex_2 = callPackage ../development/ocaml-modules/sedlex/2.nix { };
 
     semaphore-compat = callPackage ../development/ocaml-modules/semaphore-compat { };
 
@@ -1359,6 +1366,12 @@ let
     trie = callPackage ../development/ocaml-modules/trie { };
 
     tsdl = callPackage ../development/ocaml-modules/tsdl { };
+
+    tsdl-image = callPackage ../development/ocaml-modules/tsdl-image { };
+
+    tsdl-mixer = callPackage ../development/ocaml-modules/tsdl-mixer { };
+
+    tsdl-ttf = callPackage ../development/ocaml-modules/tsdl-ttf { };
 
     twt = callPackage ../development/ocaml-modules/twt { };
 
@@ -1446,6 +1459,8 @@ let
     yojson = callPackage ../development/ocaml-modules/yojson { };
 
     yuscii = callPackage ../development/ocaml-modules/yuscii { };
+
+    yuujinchou = callPackage ../development/ocaml-modules/yuujinchou { };
 
     z3 = callPackage ../development/ocaml-modules/z3 {
       inherit (pkgs) z3;

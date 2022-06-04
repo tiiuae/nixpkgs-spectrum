@@ -1,4 +1,4 @@
-{ fetchurl, lib, stdenv }:
+{ fetchurl, lib, stdenv, bash, perl }:
 
 stdenv.mkDerivation rec {
   pname = "rush";
@@ -9,9 +9,18 @@ stdenv.mkDerivation rec {
     sha256 = "sha256-ld5TdpF7siprQCbhE4oxYhH40x3QZ5NCQlD3zRaNmM0=";
   };
 
+  strictDeps = true;
+  buildInputs = [ bash ];
+
+  postInstall = ''
+    substituteInPlace $out/bin/rush-po \
+      --replace "exec perl" "exec ${lib.getExe perl}"
+  '';
+
   doCheck = true;
 
   meta = {
+    broken = stdenv.isDarwin;
     description = "Restricted User Shell";
 
     longDescription =

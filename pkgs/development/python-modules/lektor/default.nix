@@ -1,5 +1,5 @@
 { lib
-, Babel
+, babel
 , buildPythonPackage
 , click
 , exifread
@@ -40,7 +40,7 @@ buildPythonPackage rec {
   };
 
   propagatedBuildInputs = [
-    Babel
+    babel
     click
     exifread
     filetype
@@ -62,7 +62,6 @@ buildPythonPackage rec {
   checkInputs = [
     pytest-click
     pytest-mock
-    pytest-pylint
     pytestCheckHook
   ];
 

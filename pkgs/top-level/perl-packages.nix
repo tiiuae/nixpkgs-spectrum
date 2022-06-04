@@ -330,7 +330,7 @@ let
 
     installPhase = "./Build install --prefix $out";
 
-    SDL_INST_DIR = pkgs.SDL.dev;
+    SDL_INST_DIR = lib.getDev pkgs.SDL;
     buildInputs = [ pkgs.SDL ArchiveExtract ArchiveZip TextPatch ];
     propagatedBuildInputs = [ CaptureTiny FileShareDir FileWhich ];
 
@@ -1619,6 +1619,7 @@ let
       homepage = "https://github.com/mongodb-labs/mongo-perl-bson-xs";
       description = "XS implementation of MongoDB's BSON serialization (EOL)";
       license = lib.licenses.asl20;
+      platforms = lib.platforms.linux; # configure phase fails with "ld: unknown option: -mmacosx-version-min=10.12"
     };
   };
 
@@ -2066,6 +2067,7 @@ let
     };
     propagatedBuildInputs = [ perlldap CatalystPluginAuthentication ClassAccessor ];
     buildInputs = [ TestMockObject TestException NetLDAPServerTest ];
+    doCheck = !stdenv.isDarwin; # t/02-realms_api.t and t/50.auth.case.sensitivity.t
     meta = {
       description= "Authentication from an LDAP Directory";
       license = with lib.licenses; [ artistic1 ];
@@ -6542,6 +6544,21 @@ let
     };
   };
 
+  DBMDeep = buildPerlPackage {
+    pname = "DBM-Deep";
+    version = "2.0016";
+    src = fetchurl {
+      url = "https://cpan.metacpan.org/authors/id/S/SP/SPROUT/DBM-Deep-2.0016.tar.gz";
+      sha256 = "sha256-kCp8eqBIjY0KDops89oOlrQJOuRx5rdy8MbViY5HDk0=";
+    };
+    buildInputs = [ TestDeep TestException TestPod TestPodCoverage TestWarn ];
+    meta = {
+      homepage = "https://github.com/robkinyon/dbm-deep";
+      description = "A pure perl multi-level hash/array DBM that supports transactions";
+      license = with lib.licenses; [ artistic1 gpl1Plus ];
+    };
+  };
+
   DataBinary = buildPerlPackage {
     pname = "Data-Binary";
     version = "0.01";
@@ -8019,6 +8036,7 @@ let
       url = "mirror://cpan/authors/id/E/ET/ETJ/ExtUtils-CppGuess-0.21.tar.gz";
       sha256 = "0ls1y9bb2nff9djli91s86541r7ajcjp22gqhcdmj7hs69w92qpz";
     };
+    doCheck = !stdenv.isDarwin;
     nativeBuildInputs = [ pkgs.ld-is-cc-hook ];
     propagatedBuildInputs = [ CaptureTiny ];
     buildInputs = [ ModuleBuild ];
@@ -9424,6 +9442,7 @@ let
     postCheck = ''
       rm -r $out/lib
     '';
+    doCheck = !stdenv.isDarwin;
     meta = {
       description = "Dynamically create Perl language bindings";
       license = lib.licenses.lgpl2Plus;
@@ -9459,6 +9478,7 @@ let
       license = lib.licenses.lgpl2Plus;
     };
     propagatedBuildInputs = [ Gtk2 ];
+    doCheck = !stdenv.isDarwin;
   };
 
   Gnome2VFS = buildPerlPackage {
@@ -10508,6 +10528,8 @@ let
     };
     propagatedBuildInputs = [ HTTPDate ];
     buildInputs = [ TestDeep TestRequires URI ];
+    # Broken on Hydra since 2021-06-17: https://hydra.nixos.org/build/146507373
+    doCheck = false;
     meta = {
       description = "A minimalist HTTP user agent cookie jar";
       license = with lib.licenses; [ asl20 ];
@@ -12373,6 +12395,7 @@ let
   LocaleGettext = buildPerlPackage {
     pname = "gettext";
     version = "1.07";
+    strictDeps = true;
     buildInputs = [ pkgs.gettext ];
     src = fetchurl {
       url = "mirror://cpan/authors/id/P/PV/PVANDRY/gettext-1.07.tar.gz";
@@ -15188,10 +15211,10 @@ let
 
   TestPostgreSQL = buildPerlModule {
     pname = "Test-PostgreSQL";
-    version = "1.27";
+    version = "1.29";
     src = fetchurl {
-      url = "mirror://cpan/authors/id/T/TJ/TJC/Test-PostgreSQL-1.27.tar.gz";
-      sha256 = "b1bd231693100cc40905fb0ba3173173201621de9c8301f21c5b593b0a46f907";
+      url = "mirror://cpan/authors/id/T/TJ/TJC/Test-PostgreSQL-1.29.tar.gz";
+      sha256 = "sha256-GKz35YnKTMqc3kdgm1NsnYI8hWLRqlIQwWjl6xuOT54=";
     };
     buildInputs = [ ModuleBuildTiny TestSharedFork pkgs.postgresql ];
     propagatedBuildInputs = [ DBDPg DBI FileWhich FunctionParameters Moo TieHashMethod TryTiny TypeTiny ];
@@ -16924,6 +16947,22 @@ let
        description = "Number::Misc - handy utilities for numbers";
        license = with lib.licenses; [ artistic1 gpl1Plus ];
      };
+  };
+
+  NumberPhone = buildPerlPackage {
+    pname = "Number-Phone";
+    version = "3.8004";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/D/DC/DCANTRELL/Number-Phone-3.8004.tar.gz";
+      sha256 = "sha256-ZY7hyNGXTvSwV+B4L0mTi/PelA6QY/2bYecY6siwO+8=";
+    };
+    buildInputs = [ DevelHide FileShareDirInstall ParallelForkManager TestDifferences TestPod TestPodCoverage TestWarnings ];
+    propagatedBuildInputs = [ DataDumperConcise DBMDeep DevelCheckOS FileFindRule FileShareDir ];
+    meta = {
+      homepage = "https://github.com/DrHyde/perl-modules-Number-Phone";
+      description = "Large suite of perl modules for parsing and dealing with phone numbers";
+      license = with lib.licenses; [ artistic1 gpl2 ];
+    };
   };
 
   NumberWithError = buildPerlPackage {
@@ -19533,7 +19572,7 @@ let
       url = "mirror://cpan/authors/id/Y/YV/YVES/Sereal-4.018.tar.gz";
       sha256 = "0pqygrl88jp2w73jd9cw4k22fhvh5vcwqbiwl9wpxm67ql95cwwa";
     };
-    buildInputs = [ TestDeep TestLongString TestMemoryGrowth TestWarn ];
+    buildInputs = [ TestDeep TestLongString TestWarn ];
     propagatedBuildInputs = [ SerealDecoder SerealEncoder ];
     meta = {
       homepage = "https://github.com/Sereal/Sereal";
@@ -24510,6 +24549,7 @@ let
     meta = {
       description = "Cryptographically secure v4 UUIDs for Linux x64";
       license = with lib.licenses; [ artistic1 gpl1Plus ];
+      platforms = lib.platforms.linux; # configure phase fails with "OS unsupported"
     };
   };
 

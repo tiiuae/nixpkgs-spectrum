@@ -165,6 +165,9 @@ self: super: {
     })
   ] super.flat;
 
+  # Too strict bounds on base, optparse-applicative: https://github.com/edsko/friendly/issues/5
+  friendly = doJailbreak super.friendly;
+
   # Too strict bound on hspec: https://github.com/ivan-m/graphviz/issues/55
   graphviz = doJailbreak super.graphviz;
 
@@ -176,6 +179,15 @@ self: super: {
   vector = doJailbreak (if pkgs.stdenv.isi686 then appendConfigureFlag "--ghc-options=-msse2" super.vector else super.vector);
 
   inline-c-cpp = overrideCabal (drv: {
+    patches = drv.patches or [] ++ [
+      (fetchpatch {
+        # awaiting release >0.5.0.0
+        url = "https://github.com/fpco/inline-c/commit/e176b8e8c3c94e7d8289a8b7cc4ce8e737741730.patch";
+        name = "inline-c-cpp-pr-132-1.patch";
+        sha256 = "sha256-CdZXAT3Ar4KKDGyAUu8A7hzddKe5/AuMKoZSjt3o0UE=";
+        stripLen = 1;
+      })
+    ];
     postPatch = (drv.postPatch or "") + ''
       substituteInPlace inline-c-cpp.cabal --replace "-optc-std=c++11" ""
     '';
@@ -208,6 +220,7 @@ self: super: {
   persistent-zookeeper = dontCheck super.persistent-zookeeper;
   pocket-dns = dontCheck super.pocket-dns;
   postgresql-simple = dontCheck super.postgresql-simple;
+  squeal-postgresql = dontCheck super.squeal-postgresql;
   postgrest = dontCheck super.postgrest;
   postgrest-ws = dontCheck super.postgrest-ws;
   snowball = dontCheck super.snowball;
@@ -769,22 +782,6 @@ self: super: {
   # The tests spuriously fail
   libmpd = dontCheck super.libmpd;
 
-  # For template-haskell 2.16 and 2.17 support: https://github.com/JonasDuregard/sized-functors/pull/10
-  size-based = overrideCabal
-    (drv: {
-      # make all line endings unix, otherwise patching fails
-      prePatch = ''
-        find . -type f -print0 | xargs -0 ${pkgs.buildPackages.dos2unix}/bin/dos2unix
-      '' + (drv.prePatch or "");
-      patches = [
-        (fetchpatch {
-          url = "https://github.com/JonasDuregard/sized-functors/pull/10/commits/fe6bf78a1b97ff7429630d0e8974c9bc40945dcf.patch";
-          sha256 = "sha256-mMsXOqLqSbGl9Q0txiZiciPtGT7f12lnhlpFsnCwamk=";
-        })
-      ];
-    })
-    super.size-based;
-
   # https://github.com/diagrams/diagrams-braille/issues/1
   diagrams-braille = doJailbreak super.diagrams-braille;
 
@@ -850,9 +847,10 @@ self: super: {
     testToolDepends = drv.testToolDepends or [] ++ [ pkgs.git ];
   }) (super.sensei.overrideScope (self: super: {
     hspec-meta = self.hspec-meta_2_9_3;
-    hspec = self.hspec_2_9_7;
-    hspec-core = dontCheck self.hspec-core_2_9_7;
-    hspec-discover = self.hspec-discover_2_9_7;
+    hspec = self.hspec_2_10_0;
+    hspec-core = dontCheck self.hspec-core_2_10_0;
+    hspec-discover = self.hspec-discover_2_10_0;
+    shelly = dontCheck super.shelly; # disable checks, because the newer hspec in this overrideScope doesn‘t work with newest hspec-contrib
   }));
 
   # Depends on broken fluid.
@@ -991,10 +989,6 @@ self: super: {
 
   # https://github.com/haskell-hvr/resolv/pull/6
   resolv_0_1_1_2 = dontCheck super.resolv_0_1_1_2;
-
-  # Too strict bounds on base and Cabal, fixed on master
-  # Occasional test failures: https://github.com/phadej/spdx/issues/27
-  spdx = assert super.spdx.version == "1.0.0.2"; doJailbreak (dontCheck super.spdx);
 
   # The test suite does not know how to find the 'alex' binary.
   alex = overrideCabal (drv: {
@@ -1154,16 +1148,6 @@ self: super: {
 
   # https://github.com/danfran/cabal-macosx/issues/13
   cabal-macosx = dontCheck super.cabal-macosx;
-
-  # Causes Test.QuickCheck.resize: negative size crashes e.g. in test suites
-  # https://github.com/typeable/generic-arbitrary/issues/14
-  generic-arbitrary = appendPatches [
-    (pkgs.fetchpatch {
-      name = "generic-arbitrary-no-negative-resize.patch";
-      url = "https://github.com/typeable/generic-arbitrary/commit/c13d119d8ad0d43860ecdb93b357b0239e366a6c.patch";
-      sha256 = "1jgbd2jn575icqw9nfdzh57nacm3pn8n53ka52129pnfjqfzyhsi";
-    })
-  ] super.generic-arbitrary;
 
   # https://github.com/DanielG/cabal-helper/pull/123
   cabal-helper = doJailbreak super.cabal-helper;
@@ -1756,7 +1740,11 @@ self: super: {
   # waiting for aeson bump
   servant-swagger-ui-core = doJailbreak super.servant-swagger-ui-core;
 
-  hercules-ci-agent = generateOptparseApplicativeCompletion "hercules-ci-agent" super.hercules-ci-agent;
+  hercules-ci-agent =
+    assert super.hercules-ci-agent.version == "0.9.5"; # >0.9.5: remove source override as sdist will be fixed
+    overrideSrc
+      { src = pkgs.fetchFromGitHub { owner = "hercules-ci"; repo = "hercules-ci-agent"; rev = "hercules-ci-agent-0.9.5"; sha256 = "sha256-7d8lf4g8CWHTzIOmma8UKvFIi1Og6RqPH9Lt+6iA4pw="; } + "/hercules-ci-agent"; }
+      (generateOptparseApplicativeCompletion "hercules-ci-agent" super.hercules-ci-agent);
 
   # Test suite doesn't compile with aeson 2.0
   # https://github.com/hercules-ci/hercules-ci-agent/pull/387
@@ -2003,8 +1991,6 @@ self: super: {
   haveibeenpwned = doJailbreak super.haveibeenpwned;
 
   # Too strict version bounds on ghc-events
-  # https://github.com/haskell/ThreadScope/issues/118
-  threadscope = doJailbreak super.threadscope;
   # https://github.com/mpickering/hs-speedscope/issues/16
   hs-speedscope = doJailbreak super.hs-speedscope;
 
@@ -2342,22 +2328,16 @@ self: super: {
       "--skip" "/Data.List.UniqueUnsorted.repeatedBy,repeated,unique/repeatedBy: simple test/"
     ] ++ drv.testFlags or [];
   }) super.Unique;
+
   # https://github.com/AndrewRademacher/aeson-casing/issues/8
   aeson-casing = assert super.aeson-casing.version == "0.2.0.0"; overrideCabal (drv: {
     testFlags = [
       "-p" "! /encode train/"
     ] ++ drv.testFlags or [];
   }) super.aeson-casing;
-  # https://github.com/Soostone/katip/issues/134
-  katip = assert super.katip.version == "0.8.7.0"; overrideCabal (drv: {
-    testFlags = [
-      "-p" "!/Text-golden/&&!/respects payloadKeys for each constituent payload/"
-    ] ++ drv.testFlags or [];
-  }) super.katip;
+
   # 2020-11-19: Jailbreaking until: https://github.com/snapframework/heist/pull/124
   # 2021-12-22: https://github.com/snapframework/heist/issues/131
-
-
   heist = assert super.heist.version == "1.1.0.1";
     # aeson 2.0 compat https://github.com/snapframework/heist/pull/132
     # not merged in master yet
@@ -2644,5 +2624,40 @@ self: super: {
   # https://github.com/haskell-servant/servant-cassava/commit/66617547851d38d48f5f1d1b786db1286bdafa9d
   servant-cassava = assert super.servant-cassava.version == "0.10.1";
     doJailbreak super.servant-cassava;
+
+  # Fix tests failure for ghc 9 (https://github.com/clinty/debian-haskell/pull/3)
+  debian = appendPatch (fetchpatch {
+    name = "debian-haskell.3.patch";
+    url = "https://github.com/clinty/debian-haskell/pull/3/commits/47441c8e4a7a00a3c8825eec98bf7a823594f9be.patch";
+    sha256 = "0wxpqazjnal9naibapg63nm7x6qz0lklcfw2m5mzjrh2q9x2cvnd";
+  }) super.debian;
+
+  # Raise version bounds for hspec
+  records-sop = appendPatch (fetchpatch {
+    url = "https://github.com/kosmikus/records-sop/pull/11/commits/d88831388ab3041190130fec3cdd679a4217b3c7.patch";
+    sha256 = "sha256-O+v/OxvqnlWX3HaDvDIBZnJ+Og3xs/SJqI3gaouU3ZI=";
+  }) super.records-sop;
+
+  # Fix build failures for ghc 9 (https://github.com/mokus0/polynomial/pull/20)
+  polynomial = appendPatch (fetchpatch {
+    name = "haskell-polynomial.20.patch";
+    url = "https://github.com/mokus0/polynomial/pull/20.diff";
+    sha256 = "1bwivimpi2hiil3zdnl5qkds1inyn239wgxbn3y8l2pwyppnnfl0";
+  })
+  (overrideCabal (drv: {
+    revision = null;
+    editedCabalFile = null;
+    doCheck = false; # Source dist doesn't include the checks
+  })
+  super.polynomial);
+
+  fast-tags = appendPatches [
+    (fetchpatch {
+      name = "fast-tags-ghc-9.0-fix-test-nondeterminism.patch";
+      url = "https://github.com/elaforge/fast-tags/commit/af861acc2dd239fedd8b169ddc5e3fa694e7af57.patch";
+      sha256 = "0ml678q1n29daqnxsb5p94s5lf7a6dk4lqbbgmiayxrbyxnlbi4f";
+      excludes = [ ".github/**" ];
+    })
+  ] super.fast-tags;
 
 } // import ./configuration-tensorflow.nix {inherit pkgs haskellLib;} self super

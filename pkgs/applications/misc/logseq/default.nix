@@ -1,12 +1,12 @@
-{ lib, stdenv, fetchurl, appimageTools, makeWrapper, autoPatchelfHook, electron, curl, expat, gcc, openssl, zlib }:
+{ lib, stdenv, fetchurl, appimageTools, makeWrapper, autoPatchelfHook, electron, git, curl, expat, gcc, openssl, zlib }:
 
 stdenv.mkDerivation rec {
   pname = "logseq";
-  version = "0.6.6";
+  version = "0.7.0";
 
   src = fetchurl {
     url = "https://github.com/logseq/logseq/releases/download/${version}/logseq-linux-x64-${version}.AppImage";
-    sha256 = "r6IBvhA8H8XnMIBgZZodyU61xtqNA4N9kCRv/QWQc9M=";
+    sha256 = "sha256-oXNSd0ZU2ZsMK51tq8iq2sfuLg0ZHaiXhpJpWZkEmeY=";
     name = "${pname}-${version}.AppImage";
   };
 
@@ -38,6 +38,7 @@ stdenv.mkDerivation rec {
 
   postFixup = ''
     makeWrapper ${electron}/bin/electron $out/bin/${pname} \
+      --prefix PATH : ${lib.makeBinPath [ git ]} \
       --add-flags $out/share/${pname}/resources/app
   '';
 

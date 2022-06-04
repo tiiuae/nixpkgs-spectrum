@@ -1,17 +1,21 @@
-{ lib, fetchFromGitHub, rustPlatform, installShellFiles }:
+{ lib
+, fetchFromGitHub
+, rustPlatform
+, installShellFiles
+}:
 
 rustPlatform.buildRustPackage rec {
   pname = "httm";
-  version = "0.9.0";
+  version = "0.10.15";
 
   src = fetchFromGitHub {
     owner = "kimono-koans";
     repo = pname;
     rev = version;
-    sha256 = "sha256-uqzwS7+OQsPdMv3+fWdn3yVFJwtFZNd8kVWw//mQZj8=";
+    sha256 = "u18dIw4At78OSeWCDHJIjzDbaxpiSs3g+bf2WClFkuY=";
   };
 
-  cargoSha256 = "sha256-EC3E5NawsDe+CU5WEu0G3FWVLuqW5nXOoUURN0iDPK0=";
+  cargoSha256 = "mLFponkRIEWePpSyhQK1IG/rnJ0qpDwrS7vwAoP1ro0=";
 
   nativeBuildInputs = [ installShellFiles ];
 

@@ -1,21 +1,15 @@
-{ stdenv, lib, callPackage, fetchurl, fetchpatch, nixosTests }:
-
-let
-  common = opts: callPackage (import ../../browsers/firefox/common.nix opts) {
-    webrtcSupport = false;
-    geolocationSupport = false;
-  };
-in
+{ stdenv, lib, buildMozillaMach, callPackage, fetchurl, fetchpatch, nixosTests }:
 
 rec {
-  thunderbird = (common rec {
+  thunderbird = (buildMozillaMach rec {
     pname = "thunderbird";
-    version = "91.8.1";
+    version = "91.9.1";
     application = "comm/mail";
+    applicationName = "Mozilla Thunderbird";
     binaryName = pname;
     src = fetchurl {
       url = "mirror://mozilla/thunderbird/releases/${version}/source/thunderbird-${version}.source.tar.xz";
-      sha512 = "1591f3e9c76c1f2ea7fa5e194a7d030c8657a7855a95c8a177e8067c5aa838f0d8ca2652cd049b4bc88d0c9e604285a47b0c8316c190e2ceadfc1130d1e4de6c";
+      sha512 = "997751056ad44367a128aef13ddd55f80798f262644253f814e6e607b3bfc3e33070ed072fa7062586378234cabc7ad106efa26befc3ecb843c5dd02c1498f0f";
     };
     extraPatches = [
       # The file to be patched is different from firefox's `no-buildconfig-ffx90.patch`.
@@ -36,6 +30,9 @@ rec {
       attrPath = "thunderbird-unwrapped";
     };
   }).override {
+    geolocationSupport = false;
+    webrtcSupport = false;
+
     pgoSupport = false; # console.warn: feeds: "downloadFeed: network connection unavailable"
   };
 }

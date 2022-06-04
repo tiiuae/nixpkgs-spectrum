@@ -1,8 +1,9 @@
 { stdenv, lib, buildPythonPackage, fetchPypi, makeWrapper, isPy3k
-, python, twisted, jinja2, zope_interface, sqlalchemy, alembic, python-dateutil
-, txaio, autobahn, pyjwt, pyyaml, unidiff, treq, txrequests, pypugjs, boto3
-, moto, mock, lz4, setuptoolsTrial, isort, pylint, flake8, buildbot-worker
-, buildbot-pkg, buildbot-plugins, parameterized, git, openssh, glibcLocales
+, python, twisted, jinja2, msgpack, zope_interface, sqlalchemy, alembic
+, python-dateutil, txaio, autobahn, pyjwt, pyyaml, treq, txrequests, pypugjs
+, boto3, moto, mock, lz4, setuptoolsTrial, isort, pylint, flake8
+, buildbot-worker, buildbot-pkg, buildbot-plugins, parameterized, git, openssh
+, glibcLocales
 , nixosTests
 }:
 
@@ -42,6 +43,7 @@ let
       # core
       twisted
       jinja2
+      msgpack
       zope_interface
       sqlalchemy
       alembic
@@ -50,10 +52,9 @@ let
       autobahn
       pyjwt
       pyyaml
-      unidiff
     ]
       # tls
-      ++ twisted.extras-require.tls;
+      ++ twisted.optional-dependencies.tls;
 
     checkInputs = [
       treq
@@ -106,6 +107,7 @@ let
     };
 
     meta = with lib; {
+      broken = stdenv.isDarwin;
       homepage = "https://buildbot.net/";
       description = "An open-source continuous integration framework for automating software build, test, and release processes";
       maintainers = with maintainers; [ ryansydnor lopsided98 ];

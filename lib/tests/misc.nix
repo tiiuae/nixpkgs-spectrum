@@ -22,16 +22,6 @@ in
 
 runTests {
 
-# FLAKES
-
-  testCallLocklessFlake = {
-    expr = callLocklessFlake {
-      path = ./flakes/subflakeTest;
-      inputs = { subflake = ./flakes/subflakeTest/subflake; inherit callLocklessFlake; };
-    };
-    expected = { x = 1; outPath = ./flakes/subflakeTest; };
-  };
-
 # TRIVIAL
 
   testId = {
@@ -682,6 +672,21 @@ runTests {
       expr = (builtins.tryEval
         (generators.toPretty { } (generators.withRecursion { depthLimit = 2; } a))).success;
       expected = false;
+    };
+
+  testWithRecursionDealsWithFunctors =
+    let
+      functor = {
+        __functor = self: { a, b, }: null;
+      };
+      a = {
+        value = "1234";
+        b = functor;
+        c.d = functor;
+      };
+    in {
+      expr = generators.toPretty { } (generators.withRecursion { depthLimit = 1; throwOnDepthLimit = false; } a);
+      expected = "{\n  b = <function, args: {a, b}>;\n  c = {\n    d = \"<unevaluated>\";\n  };\n  value = \"<unevaluated>\";\n}";
     };
 
   testToPrettyMultiline = {

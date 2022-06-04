@@ -3,7 +3,7 @@
 , fetchPypi
 
 # extras: babel
-, Babel
+, babel
 , flask-babel
 
 # extras: common
@@ -27,7 +27,7 @@
 , flask
 , flask_login
 , flask_principal
-, flask_wtf
+, flask-wtf
 , itsdangerous
 , passlib
 
@@ -58,14 +58,14 @@ buildPythonPackage rec {
     flask
     flask_login
     flask_principal
-    flask_wtf
+    flask-wtf
     itsdangerous
     passlib
   ];
 
-  passthru.extras-require = {
+  passthru.optional-dependencies = {
     babel = [
-      Babel
+      babel
       flask-babel
     ];
     common = [
@@ -95,10 +95,10 @@ buildPythonPackage rec {
     pytestCheckHook
     zxcvbn
   ]
-  ++ passthru.extras-require.babel
-  ++ passthru.extras-require.common
-  ++ passthru.extras-require.fsqla
-  ++ passthru.extras-require.mfa;
+  ++ passthru.optional-dependencies.babel
+  ++ passthru.optional-dependencies.common
+  ++ passthru.optional-dependencies.fsqla
+  ++ passthru.optional-dependencies.mfa;
 
 
   pythonImportsCheck = [ "flask_security" ];
