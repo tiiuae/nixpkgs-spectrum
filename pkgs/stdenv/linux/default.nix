@@ -278,9 +278,12 @@ in
             mkdir -p "$out"/bin
             cp -a '${prevStage.bintools.bintools}'/bin/* "$out"/bin/
             chmod +w "$out"/bin/ld.bfd
-            patchelf --set-interpreter '${getLibc self}'/lib/ld*.so.? \
-              --set-rpath "${getLibc self}/lib:$(patchelf --print-rpath "$out"/bin/ld.bfd)" \
-              "$out"/bin/ld.bfd
+            patchelf --set-interpreter '${getLibc self}'/lib/ld*.so.? "$out"/bin/ld.bfd
+            if [[ "${getLibc self}" == *"musl-1.2.3"* ]]; then
+              patchelf --set-rpath "${getLibc self}/lib:$(patchelf --print-rpath "$out"/bin/ld.bfd | sed -r 's#/nix/store/\w*-bootstrap.*?/lib##g')" "$out"/bin/ld.bfd
+            else
+              patchelf --set-rpath "${getLibc self}/lib:$(patchelf --print-rpath "$out"/bin/ld.bfd)" "$out"/bin/ld.bfd
+            fi
           '';
         };
       };
