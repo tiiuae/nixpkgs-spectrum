@@ -213,6 +213,11 @@ in {
       ];
     }).zen;
 
+    linux_imx8 = callPackage ../os-specific/linux/kernel/linux-imx8.nix {
+      kernelPatches = with kernelPatches; [
+      ];
+    };
+
     linux_lqx = (zenKernels {
       kernelPatches = [
         kernelPatches.bridge_stp_helper
