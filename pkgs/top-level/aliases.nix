@@ -814,6 +814,7 @@ mapAliases ({
   linux_rpi2 = linuxKernel.kernels.linux_rpi2;
   linux_rpi3 = linuxKernel.kernels.linux_rpi3;
   linux_rpi4 = linuxKernel.kernels.linux_rpi4;
+  linux_imx8 = linuxKernel.kernels.linux_imx8;
 
   # Added 2020-04-04
   linuxPackages_testing_hardened = throw "linuxPackages_testing_hardened has been removed, please use linuxPackages_latest_hardened";
