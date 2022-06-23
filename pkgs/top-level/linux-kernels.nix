@@ -215,6 +215,11 @@ in {
       ];
     };
 
+    linux_imx8 = callPackage ../os-specific/linux/kernel/linux-imx8.nix {
+      kernelPatches = with kernelPatches; [
+      ];
+    };
+
     # This contains both the STABLE and EDGE variants of the XanMod kernel
     xanmodKernels = callPackage ../os-specific/linux/kernel/xanmod-kernels.nix;
 
