@@ -25,7 +25,8 @@ stdenv.mkDerivation rec {
     })
   ];
 
-  nativeBuildInputs = [ meson ninja pkg-config /* wayland-scanner */ python3 ];
+  depsBuildBuild = [pkg-config];
+  nativeBuildInputs = [ meson ninja pkg-config wayland-scanner python3 ];
   buildInputs = [
     wayland libGL mesa libxkbcommon cairo /* libxcb libXcursor xlibsWrapper udev */ libdrm
     /* mtdev libjpeg pam dbus */ libinput libevdev /* pango libunwind freerdp vaapi libva */ pixman
