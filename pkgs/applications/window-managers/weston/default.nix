@@ -1,6 +1,6 @@
-{ lib, stdenv, fetchurl, fetchpatch, meson, ninja, pkg-config, wayland-scanner
-, python3, wayland, libGL, mesa, libxkbcommon, cairo, libxcb, seatd
-, libXcursor, xlibsWrapper, udev, libdrm, mtdev, libjpeg, pam, dbus, libinput, libevdev, pixman
+{ lib, stdenv, fetchurl, fetchpatch, meson, ninja, pkg-config, wayland-scanner, python3
+, wayland, libGL, mesa, libxkbcommon, cairo, libxcb
+, libXcursor, xlibsWrapper, udev, libdrm, mtdev, libjpeg, pam, dbus, libinput, libevdev
 , colord, lcms2, pipewire ? null
 , pango ? null, libunwind ? null, freerdp ? null, vaapi ? null, libva ? null
 , libwebp ? null, xwayland ? null, wayland-protocols
@@ -25,52 +25,30 @@ stdenv.mkDerivation rec {
     })
   ];
 
-  nativeBuildInputs = [ meson ninja pkg-config /* wayland-scanner */ python3 ];
+  nativeBuildInputs = [ meson ninja pkg-config wayland-scanner python3 ];
   buildInputs = [
-    wayland libGL mesa libxkbcommon cairo /* libxcb libXcursor xlibsWrapper udev */ libdrm
-    /* mtdev libjpeg pam dbus */ libinput libevdev /* pango libunwind freerdp vaapi libva */ pixman
-    /* libwebp */ wayland-protocols
-  #   colord lcms2 pipewire
+    wayland libGL mesa libxkbcommon cairo libxcb libXcursor xlibsWrapper udev libdrm
+    mtdev libjpeg pam dbus libinput libevdev pango libunwind freerdp vaapi libva
+    libwebp wayland-protocols
+    colord lcms2 pipewire
   ];
 
-  mesonFlags = [
-    "-Dimage-jpeg=false"
-    "-Dimage-webp=false"
-    "-Dlauncher-logind=false"
-    # "-Dlauncher-libseat=true"
-    # "-Drenderer-gl=false"
-    "-Dbackend-drm-screencast-vaapi=false"
-    # "-Dbackend-drm=false"
-    "-Dbackend-default=drm"
-    "-Dbackend-rdp=false"
-    "-Dxwayland=false"
-    "-Dcolor-management-lcms=false"
-    "-Dcolor-management-colord=false"
-    "-Dremoting=false"
-    "-Dpipewire=false"
-    "-Dsimple-clients="
+  mesonFlags= [
+    "-Dbackend-drm-screencast-vaapi=${boolToString (vaapi != null)}"
+    "-Dbackend-rdp=${boolToString (freerdp != null)}"
+    "-Dxwayland=${boolToString (xwayland != null)}" # Default is true!
+    "-Dremoting=false" # TODO
+    "-Dpipewire=${boolToString (pipewire != null)}"
+    "-Dimage-webp=${boolToString (libwebp != null)}"
     "-Ddemo-clients=false"
+    "-Dsimple-clients="
     "-Dtest-junit-xml=false"
-    "-Dsystemd=false"
-    "-Dlauncher-logind=false"
+    # TODO:
+    #"--enable-clients"
+    #"--disable-setuid-install" # prevent install target to chown root weston-launch, which fails
+  ] ++ optionals (xwayland != null) [
+    "-Dxwayland-path=${xwayland.out}/bin/Xwayland"
   ];
-
-  # mesonFlags= [
-  #   "-Dbackend-drm-screencast-vaapi=${boolToString (vaapi != null)}"
-  #   "-Dbackend-rdp=${boolToString (freerdp != null)}"
-  #   "-Dxwayland=${boolToString (xwayland != null)}" # Default is true!
-  #   "-Dremoting=false" # TODO
-  #   "-Dpipewire=${boolToString (pipewire != null)}"
-  #   "-Dimage-webp=${boolToString (libwebp != null)}"
-  #   "-Ddemo-clients=false"
-  #   "-Dsimple-clients="
-  #   "-Dtest-junit-xml=false"
-  #   # TODO:
-  #   #"--enable-clients"
-  #   #"--disable-setuid-install" # prevent install target to chown root weston-launch, which fails
-  # ] ++ optionals (xwayland != null) [
-  #   "-Dxwayland-path=${xwayland.out}/bin/Xwayland"
-  # ];
 
   passthru.providedSessions = [ "weston" ];
 
