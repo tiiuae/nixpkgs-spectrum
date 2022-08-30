@@ -68,11 +68,11 @@ in
       # Allwinner support
 
       # Required for early KMS
-      "sun4i-drm"
-      "sun8i-mixer" # Audio, but required for kms
+      #"sun4i-drm"
+      #"sun8i-mixer" # Audio, but required for kms
 
       # PWM for the backlight
-      "pwm-sun4i"
+      #"pwm-sun4i"
 
       # Broadcom
 
@@ -87,12 +87,12 @@ in
       "pcie-brcmstb"
 
       # Rockchip
-      "dw-hdmi"
-      "dw-mipi-dsi"
-      "rockchipdrm"
-      "rockchip-rga"
-      "phy-rockchip-pcie"
-      "pcie-rockchip-host"
+      #"dw-hdmi"
+      #"dw-mipi-dsi"
+      #"rockchipdrm"
+      #"rockchip-rga"
+      #"phy-rockchip-pcie"
+      #"pcie-rockchip-host"
 
       # Misc. uncategorized hardware
 
