@@ -1,0 +1,12 @@
+diff --git a/Makefile b/Makefile
+index 1c0b039..d379f08 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,6 +1,6 @@
+ 
+ MKIMG = $(PWD)/mkimage_imx8
+-CC = gcc
++CC ?= gcc
+ CFLAGS ?= -g -O2 -Wall -std=c99 -static
+ INCLUDE += $(CURR_DIR)/src
+ 
