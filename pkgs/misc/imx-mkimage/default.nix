@@ -2,12 +2,13 @@
 
 stdenv.mkDerivation rec {
   pname = "imx-mkimage";
-  version = "lf-5.15.32_2.0.0";
+  version = "lf-5.15.32-2.0.0";
 
   src = fetchgit {
     url = "https://source.codeaurora.org/external/imx/imx-mkimage.git";
-    rev = "a8bb8edb45492ac70b33734122a57aa8e38a20bd";
-    sha256 = "sha256-jdmAvmjoWZ1wtpBNX4cF0f2k7lIGjkmoj+SSLGbNq9M=";
+    rev = version;
+    sha256 = "sha256-31pib5DTDPVfiAAoOSzK8HWUlnuiNnfXQIsxbjneMCc=";
+    leaveDotGit = true;
   };
 
   patches = [
