@@ -537,11 +537,11 @@ in {
       install -m 0644 ${imx-firmware}/mx8qx-mek-scfw-tcm.bin ./mx8qx-mek-scfw-tcm.bin
     '';
     postBuild = ''
-      ${imx-mkimage} -commit > head.hash
+      ${buildPackages.imx-mkimage}/bin/mkimage_imx8 -commit > head.hash
       cat u-boot.bin head.hash > u-boot-hash.bin
       cp bl31.bin u-boot-atf.bin
       dd if=u-boot-hash.bin of=u-boot-atf.bin bs=1K seek=128
-      ${imx-mkimage} -soc QX -rev B0 -append ahab-container.img -c -scfw mx8qx-mek-scfw-tcm.bin -ap u-boot-atf.bin a35 0x80000000 -out flash.bin
+      ${buildPackages.imx-mkimage}/bin/mkimage_imx8  -soc QX -rev B0 -append ahab-container.img -c -scfw mx8qx-mek-scfw-tcm.bin -ap u-boot-atf.bin a35 0x80000000 -out flash.bin
     '';
   };
 }

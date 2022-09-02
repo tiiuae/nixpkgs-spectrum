@@ -6,8 +6,8 @@ stdenv.mkDerivation rec {
 
   src = fetchgit {
     url = "https://source.codeaurora.org/external/imx/imx-mkimage.git";
-    rev = "a8bb8edb45492ac70b33734122a57aa8e38a20bd";
-    sha256 = "sha256-jdmAvmjoWZ1wtpBNX4cF0f2k7lIGjkmoj+SSLGbNq9M=";
+    rev = version;
+    sha256 = "sha256-9buTYj0NdKV9CpzHfj7sIB5sRzS4Md48pn2joy+T97U=";
   };
 
   patches = [
@@ -28,6 +28,7 @@ stdenv.mkDerivation rec {
   ];
 
   installPhase = ''
-    install -m 0755 mkimage_imx8 $out
+    mkdir -p $out/bin
+    install -m 0755 mkimage_imx8 $out/bin
   '';
 }
