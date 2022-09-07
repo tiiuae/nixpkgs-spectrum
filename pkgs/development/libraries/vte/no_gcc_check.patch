@@ -1,0 +1,14 @@
+diff -ruN vte-0.68.0.orig/meson.build vte-0.68.0/meson.build
+--- vte-0.68.0.orig/meson.build	2022-03-27 21:52:19.000000000 +0400
++++ vte-0.68.0/meson.build	2022-09-07 09:53:28.492480288 +0400
+@@ -130,10 +130,6 @@
+ 
+ # C compiler
+ 
+-cc = meson.get_compiler('c')
+-
+-c_std_opt = '-std=' + c_req_std
+-assert(cc.has_argument(c_std_opt), 'option ' + c_std_opt + ' not supported by ' + cc.get_id())
+ add_project_arguments(c_std_opt, language: 'c')
+ 
+ # C++ compiler
