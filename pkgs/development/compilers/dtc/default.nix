@@ -12,11 +12,6 @@ stdenv.mkDerivation rec {
     sha256 = "sha256-gx9LG3U9etWhPxm7Ox7rOu9X5272qGeHqZtOe68zFs4=";
   };
 
-  patches = [
-    # fix dtc static building
-    ./0001-Depend-on-.a-instead-of-.so-when-building-static.patch
-  ];
-
   buildInputs = [ libyaml ];
   nativeBuildInputs = [ flex bison pkg-config which ] ++ lib.optionals pythonSupport [ python swig ];
 
@@ -24,7 +19,7 @@ stdenv.mkDerivation rec {
     patchShebangs pylibfdt/
   '';
 
-  makeFlags = [ "PYTHON=python" "STATIC_BUILD=${toString stdenv.hostPlatform.isStatic}" ];
+  makeFlags = [ "PYTHON=python" ];
   installFlags = [ "INSTALL=install" "PREFIX=$(out)" "SETUP_PREFIX=$(out)" ];
 
   # Checks are broken on aarch64 darwin
