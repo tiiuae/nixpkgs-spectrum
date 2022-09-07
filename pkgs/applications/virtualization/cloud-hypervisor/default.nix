@@ -11,6 +11,11 @@ rustPlatform.buildRustPackage rec {
     sha256 = "sha256-0QZmIqcBt2qBysosa55nAT7M+hTRX9Q4Z0qtLxK0IWg=";
   };
 
+  patches = [
+    # https://github.com/cloud-hypervisor/cloud-hypervisor/commit/a455917db5bd05f27c0b797054d1aaf4a3d30fb1
+    ./vmm-fix-missed-API-or-debug-events.patch
+  ];
+
   nativeBuildInputs = [ pkg-config ];
   buildInputs = [ openssl ] ++ lib.optional stdenv.isAarch64 dtc;
 

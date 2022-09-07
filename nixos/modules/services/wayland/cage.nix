@@ -24,7 +24,7 @@ in {
   };
 
   options.services.cage.program = mkOption {
-    type = types.str;
+    type = types.path;
     default = "${pkgs.xterm}/bin/xterm";
     defaultText = literalExpression ''"''${pkgs.xterm}/bin/xterm"'';
     description = ''
@@ -50,7 +50,6 @@ in {
       wants = [ "dbus.socket" "systemd-logind.service" "plymouth-quit.service"];
       wantedBy = [ "graphical.target" ];
       conflicts = [ "getty@tty1.service" ];
-      environment = { "LIBSEAT_BACKEND" = "logind"; };
 
       restartIfChanged = false;
       unitConfig.ConditionPathExists = "/dev/tty1";
