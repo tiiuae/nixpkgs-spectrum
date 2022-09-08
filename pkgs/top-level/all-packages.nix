@@ -24063,6 +24063,7 @@ with pkgs;
     armTrustedFirmwareRK3399
     armTrustedFirmwareS905
     armTrustedFirmwareIMX8QXP
+    armTrustedFirmwareIMX8QM
     ;
 
   imx-firmware = callPackage ../misc/imx-firmware { };
@@ -25203,6 +25204,7 @@ with pkgs;
     ubootUtilite
     ubootWandboard
     ubootIMX8QXP
+    ubootIMX8QM
     ;
 
   # Upstream Barebox:
