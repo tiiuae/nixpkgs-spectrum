@@ -3,7 +3,7 @@
 , libdbi ? null, net-snmp ? null, libuuid ? null, curl ? null, gnutls ? null
 , libgcrypt ? null, liblognorm ? null, openssl ? null, librelp ? null, libksi ? null
 , liblogging ? null, libnet ? null, hadoop ? null, rdkafka ? null
-, libmongo-client ? null, czmq ? null, rabbitmq-c ? null, hiredis ? null, mongoc ? null
+, czmq ? null, rabbitmq-c ? null, hiredis ? null
 , libmaxminddb ? null
 , nixosTests ? null
 }:
@@ -27,8 +27,8 @@ stdenv.mkDerivation rec {
   buildInputs = [
     fastJson libestr json_c zlib docutils libkrb5 jemalloc
     postgresql libdbi net-snmp libuuid curl gnutls libgcrypt liblognorm openssl
-    librelp libksi liblogging libnet hadoop rdkafka libmongo-client czmq
-    rabbitmq-c hiredis mongoc libmaxminddb
+    librelp libksi liblogging libnet hadoop rdkafka czmq
+    rabbitmq-c hiredis libmaxminddb
   ] ++ lib.optional (libmysqlclient != null) libmysqlclient
     ++ lib.optional stdenv.isLinux systemd;
 
@@ -95,7 +95,6 @@ stdenv.mkDerivation rec {
     (mkFlag true                      "mmsnmptrapd")
     (mkFlag (hadoop != null)          "omhdfs")
     (mkFlag (rdkafka != null)         "omkafka")
-    (mkFlag (libmongo-client != null) "ommongodb")
     (mkFlag (czmq != null)            "imczmq")
     (mkFlag (czmq != null)            "omczmq")
     (mkFlag (rabbitmq-c != null)      "omrabbitmq")

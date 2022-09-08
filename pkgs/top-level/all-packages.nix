@@ -4323,7 +4323,6 @@ with pkgs;
     libnet = null;
     hadoop = null;
     rdkafka = null;
-    libmongo-client = null;
     czmq = null;
     rabbitmq-c = null;
     hiredis = null;
