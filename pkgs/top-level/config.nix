@@ -79,7 +79,7 @@ let
 
     allowUnfree = mkOption {
       type = types.bool;
-      default = false;
+      default = true;
       # getEnv part is in check-meta.nix
       defaultText = literalExpression ''false || builtins.getEnv "NIXPKGS_ALLOW_UNFREE" == "1"'';
       description = ''
