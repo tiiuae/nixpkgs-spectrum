@@ -1,5 +1,5 @@
 diff --git a/configs/imx8qm_mek_defconfig b/configs/imx8qm_mek_defconfig
-index 29e9d796a6..bb8b6a8d1c 100644
+index 29e9d796a6..1ed6eeee57 100644
 --- a/configs/imx8qm_mek_defconfig
 +++ b/configs/imx8qm_mek_defconfig
 @@ -31,7 +31,7 @@ CONFIG_PANIC_HANG=y
@@ -7,7 +7,7 @@ index 29e9d796a6..bb8b6a8d1c 100644
  CONFIG_BOOTDELAY=3
  CONFIG_USE_BOOTCOMMAND=y
 -CONFIG_BOOTCOMMAND="mmc dev ${mmcdev}; if mmc rescan; then if run loadbootscript; then run bootscript; else if test ${sec_boot} = yes; then if run loadcntr; then run mmcboot; else run netboot; fi; else if run loadimage; then run mmcboot; else run netboot; fi; fi; fi; else booti ${loadaddr} - ${fdt_addr}; fi"
-+CONFIG_BOOTCOMMAND="run distro_bootcmd; mmc dev ${mmcdev}; if mmc rescan; then if run loadbootscript; then run bootscript; else if test ${sec_boot} = yes; then if run loadcntr; then run mmcboot; else run netboot; fi; else if run loadimage; then run mmcboot; else run netboot; fi; fi; fi; else booti ${loadaddr} - ${fdt_addr}; fi"
++CONFIG_BOOTCOMMAND="run loadhdp; hdp load ${hdp_addr}; run distro_bootcmd;"
  CONFIG_LOG=y
  CONFIG_BOARD_EARLY_INIT_F=y
  CONFIG_SPL_BOARD_INIT=y
