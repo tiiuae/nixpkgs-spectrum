@@ -3,33 +3,31 @@
 with lib;
 
 buildLinux (args // rec {
-  version = "5.10.109";
-  nxp_ref = "5.10-2.1.x-imx";
+  version = "5.15.32";
+  nxp_ref = "lf-5.15.y";
 
   # modDirVersion needs to be x.y.z, will automatically add .0 if needed
   modDirVersion = if (modDirVersionArg == null) then concatStringsSep "." (take 3 (splitVersion "${version}.0")) else modDirVersionArg;
 
   defconfig = "imx_v8_defconfig";
 
+  autoModules = false;
+
   extraConfig = ''
-    SECURE_KEYS n
-    FB n
-    FB_MXC n
-    FB_MXS n
-    MFD_MAX17135 n
-    REGULATOR_ARM_SCMI n
-    REGULATOR_PF1550_RPMSG n
-    MXC_PXP y
-    SND_IMX_SOC n
-    VIDEO_MXC_CAPTURE n
-    SENSORS_MAG3110 n
-    SENSORS_MAX17135 n
-    CRYPTO_TLS n
-    STAGING n
+    CRYPTO_TLS m
+    TLS y
+    MD_RAID0 m
+    MD_RAID1 m
+    MD_RAID10 m
+    MD_RAID456 m
+    DM_VERITY m
+    LOGO y
+    FRAMEBUFFER_CONSOLE_DEFERRED_TAKEOVER n
+    FB_EFI n
   '';
 
   src = fetchGit {
-    url = "https://github.com/Freescale/linux-fslc.git";
+    url = "https://source.codeaurora.org/external/imx/linux-imx";
     ref = nxp_ref;
   };
 } // (args.argsOverride or { }))
