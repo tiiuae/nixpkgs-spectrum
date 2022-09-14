@@ -221,6 +221,12 @@ in {
       ];
     };
 
+    linux_imx8_kvmsed = callPackage ../os-specific/linux/kernel/linux-imx8.nix {
+      kernelPatches = with kernelPatches; [
+        kvms_kernel_bootflow
+      ];
+    };
+
     # This contains both the STABLE and EDGE variants of the XanMod kernel
     xanmodKernels = callPackage ../os-specific/linux/kernel/xanmod-kernels.nix;
 
