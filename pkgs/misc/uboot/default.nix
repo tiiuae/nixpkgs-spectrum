@@ -529,7 +529,7 @@ in {
     BL31 = "${armTrustedFirmwareIMX8QXP}/bl31.bin";
     enableParallelBuilding = true;
     patches = [
-      0001-kvms-copy-to-internal-memory.patch
+      ./0001-kvms-copy-to-internal-memory.patch
     ];
     defconfig = "imx8qxp_mek_defconfig";
     extraMeta.platforms = ["aarch64-linux"];
@@ -555,6 +555,9 @@ in {
       url = "https://github.com/tiiuae/uboot-imx8.git";
       ref = "lf_v2022.04-uefi";
     };
+    patches = [
+      ./0001-kvms-copy-to-internal-memory.patch
+    ];
     BL31 = "${armTrustedFirmwareIMX8QM}/bl31.bin";
     enableParallelBuilding = true;
     patches = [
