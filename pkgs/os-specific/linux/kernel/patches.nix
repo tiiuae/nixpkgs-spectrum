@@ -49,6 +49,11 @@
       patch = ./kvms_5.15.5_imx8.patch;
     };
 
+  kvms_kernel_bootflow =
+    { name = "kvms_kernel_bootflow";
+      patch = ./0001-KVM-external-hypervisor-for-imx8-5.10.72-kernel.patch;
+    };
+
   cpu-cgroup-v2 = import ./cpu-cgroup-v2-patches;
 
   hardened = let
