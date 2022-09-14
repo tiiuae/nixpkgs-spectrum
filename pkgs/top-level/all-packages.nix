@@ -305,6 +305,8 @@ with pkgs;
 
   btdu = callPackage ../tools/misc/btdu { };
 
+  gcompat = callPackage ../development/libraries/gcompat { };
+
   cereal = callPackage ../development/libraries/cereal { };
 
   certgraph = callPackage ../tools/security/certgraph { };
@@ -8839,6 +8841,9 @@ with pkgs;
   nxdomain = python3.pkgs.callPackage ../tools/networking/nxdomain { };
 
   nxpmicro-mfgtools = callPackage ../development/tools/misc/nxpmicro-mfgtools { };
+
+  imx-gpu-viv = callPackage ../os-specific/linux/imx-gpu-viv { };
+  imx-g2d = callPackage ../os-specific/linux/imx-g2d { };
 
   nyancat = callPackage ../tools/misc/nyancat { };
 

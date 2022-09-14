@@ -1,9 +1,9 @@
-{ lib, stdenv, fetchurl, fetchpatch, meson, ninja, pkg-config, wayland-scanner
+{ lib, stdenv, fetchgit, fetchpatch, meson, ninja, pkg-config, wayland-scanner
 , python3, wayland, libGL, mesa, libxkbcommon, cairo, libxcb, seatd
 , libXcursor, xlibsWrapper, udev, libdrm, mtdev, libjpeg, pam, dbus, libinput, libevdev, pixman
 , colord, lcms2, pipewire ? null
 , pango ? null, libunwind ? null, freerdp ? null, vaapi ? null, libva ? null
-, libwebp ? null, xwayland ? null, wayland-protocols
+, libwebp ? null, xwayland ? null, wayland-protocols, imx-g2d, imx-gpu-viv
 # beware of null defaults, as the parameters *are* supplied by callPackage by default
 }:
 
@@ -12,17 +12,14 @@ stdenv.mkDerivation rec {
   pname = "weston";
   version = "10.0.0";
 
-  src = fetchurl {
-    url = "https://wayland.freedesktop.org/releases/${pname}-${version}.tar.xz";
-    sha256 = "1bj7wnadr7ssn6xw7k8ki0wpj6np3kjd2pcysfz3h0mr290rc8sw";
+  src = fetchgit {
+    url = "https://source.codeaurora.org/external/imx/weston-imx.git";
+    rev = "c8c6e3106b03441db1037afa995f95fcb2f9f17d";
+    hash = "sha256-V8LI29YWKZRy4dD7FtGPgohJ+E/AQHLKtcN2oMKaldQ=";
   };
 
   patches = [
-    # Fix race condition in build system
-    (fetchpatch {
-      url = "https://gitlab.freedesktop.org/wayland/weston/-/commit/0d3e438d080433ed5d203c876e7de6c7f8a14f98.patch";
-      sha256 = "sha256-d9NG1vUIuL4jpXqCo0myz/97JuFYesH+8kJnegQXeMU=";
-    })
+    ./weston_egl.patch
   ];
 
   depsBuildBuild = [pkg-config];
@@ -30,7 +27,7 @@ stdenv.mkDerivation rec {
   buildInputs = [
     wayland libGL mesa libxkbcommon cairo /* libxcb libXcursor xlibsWrapper udev */ libdrm
     /* mtdev libjpeg pam dbus */ libinput libevdev /* pango libunwind freerdp vaapi libva */ pixman
-    /* libwebp */ wayland-protocols
+    /* libwebp */ wayland-protocols imx-g2d imx-gpu-viv
   #   colord lcms2 pipewire
   ];
 
@@ -39,9 +36,13 @@ stdenv.mkDerivation rec {
     "-Dimage-webp=false"
     "-Dlauncher-logind=false"
     # "-Dlauncher-libseat=true"
-    # "-Drenderer-gl=false"
+    "-Drenderer-gl=true"
+    "-Drenderer-g2d=true"
+    "-Degl=true"
+    "-Dopengl=true"
+    "-Dimxgpu=true"
     "-Dbackend-drm-screencast-vaapi=false"
-    # "-Dbackend-drm=false"
+    "-Dbackend-drm=true"
     "-Dbackend-default=drm"
     "-Dbackend-rdp=false"
     "-Dxwayland=false"
