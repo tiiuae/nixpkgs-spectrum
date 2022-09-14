@@ -1,6 +1,6 @@
 { lib
 , stdenv
-, fetchurl
+, fetchgit
 , fetchpatch
 , substituteAll
 , meson
@@ -32,9 +32,10 @@ stdenv.mkDerivation rec {
   pname = "wayland";
   version = "1.20.0";
 
-  src = fetchurl {
-    url = "https://wayland.freedesktop.org/releases/${pname}-${version}.tar.xz";
-    sha256 = "09c7rpbwavjg4y16mrfa57gk5ix6rnzpvlnv1wp7fnbh9hak985q";
+  src = fetchgit {
+    url = "https://source.codeaurora.org/quic/la/platform/external/freedesktop.org/wayland/wayland";
+    rev = "5c3769edadc5390f27ff74500b5a8fcb6f65306b";
+    hash = "sha256-N+riSb3F3vcyUlNdlSnOUrKdDtBcGn9rUyCAi3nel6E=";
   };
 
   patches = [
