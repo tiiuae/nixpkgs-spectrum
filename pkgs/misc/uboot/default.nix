@@ -552,9 +552,6 @@ in {
       url = "https://github.com/tiiuae/uboot-imx8.git";
       ref = "lf_v2022.04-uefi";
     };
-    patches = [
-      ./0001-imx8qm-uefi.patch
-    ];
     BL31 = "${armTrustedFirmwareIMX8QM}/bl31.bin";
     enableParallelBuilding = true;
     defconfig = "imx8qm_mek_defconfig";
