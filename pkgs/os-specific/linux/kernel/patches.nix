@@ -44,6 +44,11 @@
       patch = ./genksyms-fix-segfault.patch;
     };
 
+  kvms_5_15_5_imx8 =
+    { name = "kvms_5_15_5_imx8";
+      patch = ./kvms_5.15.5_imx8.patch;
+    };
+
   cpu-cgroup-v2 = import ./cpu-cgroup-v2-patches;
 
   hardened = let
