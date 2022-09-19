@@ -7,7 +7,7 @@ stdenv.mkDerivation ({
     src = fetchFromGitHub {
       owner = "grihey";
       repo = "kvms_bin";
-      rev = "110b733";
-      sha256 = "UDO7WloCfxstKUh6xQv6PAi/Z5hWEshTeNtyhObrYR4=";
+      rev = "10f9be75";
+      sha256 = "/f6Ve5XxpvQBHH98vkMMBSD7IP8XlKu7Y8+AUjzfNpg=";
     };
 })

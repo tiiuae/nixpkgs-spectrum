@@ -217,13 +217,7 @@ in {
 
     linux_imx8 = callPackage ../os-specific/linux/kernel/linux-imx8.nix {
       kernelPatches = with kernelPatches; [
-        kvms_5_15_5_imx8
-      ];
-    };
-
-    linux_imx8_kvmsed = callPackage ../os-specific/linux/kernel/linux-imx8.nix {
-      kernelPatches = with kernelPatches; [
-        kvms_kernel_bootflow
+        kvms_5_15_32_imx8
       ];
     };
 

@@ -44,14 +44,14 @@
       patch = ./genksyms-fix-segfault.patch;
     };
 
-  kvms_5_15_5_imx8 =
-    { name = "kvms_5_15_5_imx8";
-      patch = ./kvms_5.15.5_imx8.patch;
+  kvms_5_15_32_imx8 =
+    { name = "kvms_5_15_32_imx8";
+      patch = ./kvms_5.15.32_imx8.patch;
     };
 
-  kvms_kernel_bootflow =
-    { name = "kvms_kernel_bootflow";
-      patch = ./0001-KVM-external-hypervisor-for-imx8-5.10.72-kernel.patch;
+  kvms_5_10_72_imx8 =
+    { name = "kvms_5_10_72_imx8";
+      patch = ./kvms_5.10.72_imx8.patch;
     };
 
   cpu-cgroup-v2 = import ./cpu-cgroup-v2-patches;
