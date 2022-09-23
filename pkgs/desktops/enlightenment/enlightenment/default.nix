@@ -1,4 +1,5 @@
-{ lib, stdenv
+{ lib
+, stdenv
 , fetchurl
 , meson
 , ninja
@@ -21,11 +22,11 @@
 
 stdenv.mkDerivation rec {
   pname = "enlightenment";
-  version = "0.25.3";
+  version = "0.25.4";
 
   src = fetchurl {
     url = "http://download.enlightenment.org/rel/apps/${pname}/${pname}-${version}.tar.xz";
-    sha256 = "1xngwixp0cckfq3jhrdmmk6zj67125amr7g6xwc6l89pnpmlkz9p";
+    sha256 = "sha256-VttdIGuCG5qIMdJucT5BCscLIlWm9D/N98Ae794jt6I=";
   };
 
   nativeBuildInputs = [
@@ -75,6 +76,6 @@ stdenv.mkDerivation rec {
     homepage = "https://www.enlightenment.org";
     license = licenses.bsd2;
     platforms = platforms.linux;
-    maintainers = with maintainers; [ matejc tstrobel ftrvxmtrx ] ++ teams.enlightenment.members;
+    maintainers = with maintainers; [ matejc ftrvxmtrx ] ++ teams.enlightenment.members;
   };
 }

@@ -1,4 +1,4 @@
-{ lib, stdenv, fetchurl, fetchpatch, pkg-config
+{ lib, stdenv, fetchurl, fetchpatch, pkg-config, asciidoctor
 , lvm2, json_c, openssl, libuuid, popt
 # Programs enabled by default upstream are implicitly enabled unless
 # manually set to false.
@@ -7,27 +7,15 @@
 
 stdenv.mkDerivation rec {
   pname = "cryptsetup";
-  version = "2.4.3";
+  version = "2.5.0";
 
   outputs = [ "bin" "out" "dev" "man" ];
   separateDebugInfo = true;
 
   src = fetchurl {
-    url = "mirror://kernel/linux/utils/cryptsetup/v2.4/${pname}-${version}.tar.xz";
-    sha256 = "sha256-/A35RRiBciZOxb8dC9oIJk+tyKP4VtR+upHzH+NUtQc=";
+    url = "mirror://kernel/linux/utils/cryptsetup/v2.5/${pname}-${version}.tar.xz";
+    sha256 = "sha256-kYSm672c5+shEVLn90GmyC8tHMDiSoTsnFKTnu4PBUI=";
   };
-
-  patches = [
-    # Disable 4 test cases that fail in a sandbox
-    ./disable-failing-tests.patch
-
-    # If the cryptsetup program is disabled, skip tests that require it.
-    # https://gitlab.com/cryptsetup/cryptsetup/-/merge_requests/267
-    (fetchpatch {
-      url = "https://gitlab.com/cryptsetup/cryptsetup/-/commit/42e7e4144ce4d0923b3dc4d860fc3b67ce29dbb9.patch";
-      sha256 = "19s0pw5055skjsanf90akppjzs7lbyl7ay09lsn8v65msw7jqr2s";
-    })
-  ];
 
   postPatch = ''
     patchShebangs tests
@@ -52,10 +40,13 @@ stdenv.mkDerivation rec {
     "--with-luks2-external-tokens-path=/"
   ] ++ (with lib; mapAttrsToList (flip enableFeature)) programs;
 
-  nativeBuildInputs = [ pkg-config ];
+  nativeBuildInputs = [ pkg-config asciidoctor ];
   buildInputs = [ lvm2 json_c openssl libuuid popt ];
 
-  doCheck = true;
+  # The test [7] header backup in compat-test fails with a mysterious
+  # "out of memory" error, even though tons of memory is available.
+  # Issue filed upstream: https://gitlab.com/cryptsetup/cryptsetup/-/issues/763
+  doCheck = !stdenv.hostPlatform.isMusl;
 
   meta = {
     homepage = "https://gitlab.com/cryptsetup/cryptsetup/";

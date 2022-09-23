@@ -3,7 +3,7 @@
 , fetchPypi
 , buildPythonPackage
 , dataclasses
-, pytorch
+, torch
 , pythonOlder
 , spacy
 , spacy-alignments
@@ -13,18 +13,18 @@
 
 buildPythonPackage rec {
   pname = "spacy-transformers";
-  version = "1.1.5";
+  version = "1.1.8";
   format = "setuptools";
 
   disabled = pythonOlder "3.6";
 
   src = fetchPypi {
     inherit pname version;
-    hash = "sha256-nxbmnFyHptbe5M7rQi2ECGoBpxUuutdCtY20eHsGDPI=";
+    hash = "sha256-e7YuBEq2yggW5G2pJ0Rjw9z3c1jqgRKCifYSfnzblVs=";
   };
 
   propagatedBuildInputs = [
-    pytorch
+    torch
     spacy
     spacy-alignments
     srsly

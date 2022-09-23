@@ -1,6 +1,7 @@
 { lib
 , stdenv
 , fetchFromGitHub
+, fetchpatch
 , cmake
 , ninja
 , openssl
@@ -16,16 +17,15 @@ let
 in
 stdenv.mkDerivation rec {
   pname = "duckdb";
-  version = "0.3.4";
+  version = "0.5.0";
 
   src = fetchFromGitHub {
     owner = pname;
     repo = pname;
     rev = "v${version}";
-    sha256 = "sha256-2PBc5qe2md87u2nvMTx/XZVzLsr8QrvUkw46/6VTlGs=";
+    sha256 = "sha256-dU8JXb++8OMEokr+4OyxLvcEc0vmdBvKDLxjeaWNkq0=";
   };
 
-  patches = [ ./version.patch ];
   postPatch = ''
     substituteInPlace CMakeLists.txt --subst-var-by DUCKDB_VERSION "v${version}"
   '';
@@ -38,8 +38,6 @@ stdenv.mkDerivation rec {
     "-DBUILD_JSON_EXTENSION=ON"
     "-DBUILD_ODBC_DRIVER=${enableFeature withOdbc}"
     "-DBUILD_PARQUET_EXTENSION=ON"
-    "-DBUILD_REST=ON"
-    "-DBUILD_SUBSTRAIT_EXTENSION=ON"
     "-DBUILD_TPCDS_EXTENSION=ON"
     "-DBUILD_TPCE=ON"
     "-DBUILD_TPCH_EXTENSION=ON"
@@ -49,7 +47,9 @@ stdenv.mkDerivation rec {
 
   doInstallCheck = true;
 
-  preInstallCheck = lib.optionalString stdenv.isDarwin ''
+  preInstallCheck = ''
+    export HOME="$(mktemp -d)"
+  '' + lib.optionalString stdenv.isDarwin ''
     export DYLD_LIBRARY_PATH="$out/lib''${DYLD_LIBRARY_PATH:+:}''${DYLD_LIBRARY_PATH}"
   '';
 
@@ -62,6 +62,7 @@ stdenv.mkDerivation rec {
         "test/common/test_cast_hugeint.test"
         "test/sql/copy/csv/test_csv_remote.test"
         "test/sql/copy/parquet/test_parquet_remote.test"
+        "test/sql/copy/parquet/test_parquet_remote_foreign_files.test"
       ] ++ lib.optionals stdenv.isAarch64 [
         "test/sql/aggregate/aggregates/test_kurtosis.test"
         "test/sql/aggregate/aggregates/test_skewness.test"

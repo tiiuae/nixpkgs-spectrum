@@ -6,11 +6,11 @@
 
 buildPythonPackage rec {
   pname = "pyspark";
-  version = "3.2.1";
+  version = "3.3.0";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "sha256-C4E1kmLsbprHjDUzROfeAmAn0UDG3vlJ/w2Aq3D4mlQ=";
+    sha256 = "sha256-fr6OlQVke00STVqC/KYN/TiRAhz4rWxeyId37uzpLPc=";
   };
 
   # pypandoc is broken with pandoc2, so we just lose docs.
@@ -18,7 +18,7 @@ buildPythonPackage rec {
     sed -i "s/'pypandoc'//" setup.py
 
     substituteInPlace setup.py \
-      --replace py4j==0.10.9.3 'py4j>=0.10.9,<0.11'
+      --replace py4j== 'py4j>='
   '';
 
   propagatedBuildInputs = [
@@ -35,6 +35,10 @@ buildPythonPackage rec {
   meta = with lib; {
     description = "Python bindings for Apache Spark";
     homepage = "https://github.com/apache/spark/tree/master/python";
+    sourceProvenance = with sourceTypes; [
+      fromSource
+      binaryBytecode
+    ];
     license = licenses.asl20;
     maintainers = [ maintainers.shlevy ];
   };

@@ -9,7 +9,7 @@
 # updater
 , python27, python3, writeScript
 # Apple dependencies
-, cctools, libcxx, CoreFoundation, CoreServices, Foundation
+, cctools, libcxx, sigtool, CoreFoundation, CoreServices, Foundation
 # Allow to independently override the jdks used to build and run respectively
 , buildJdk, runJdk
 , runtimeShell
@@ -26,15 +26,15 @@
 }:
 
 let
-  version = "5.1.1";
+  version = "5.2.0";
   sourceRoot = ".";
 
   src = fetchurl {
     url = "https://github.com/bazelbuild/bazel/releases/download/${version}/bazel-${version}-dist.zip";
-    sha256 = "f107wdNEaSskAPN2X9S1wLY26056insXkjCVx7VqT3g=";
+    sha256 = "sha256-ggqU27FAce1tjCZs8MCA7LJlpe6mUwdXlInEZiwtWCo=";
   };
 
-  # Update with `eval $(nix-build -A bazel.updater)`,
+  # Update with `eval $(nix-build -A bazel_5.updater)`,
   # then add new dependencies from the dict in ./src-deps.json as required.
   srcDeps = lib.attrsets.attrValues srcDepsSet;
   srcDepsSet =
@@ -126,7 +126,9 @@ let
   platforms = lib.platforms.linux ++ lib.platforms.darwin;
 
   system = if stdenv.hostPlatform.isDarwin then "darwin" else "linux";
-  arch = stdenv.hostPlatform.parsed.cpu.name;
+
+  # on aarch64 Darwin, `uname -m` returns "arm64"
+  arch = with stdenv.hostPlatform; if isDarwin && isAarch64 then "arm64" else parsed.cpu.name;
 
   bazelRC = writeTextFile {
     name = "bazel-rc";
@@ -156,6 +158,10 @@ stdenv.mkDerivation rec {
   meta = with lib; {
     homepage = "https://github.com/bazelbuild/bazel/";
     description = "Build tool that builds code quickly and reliably";
+    sourceProvenance = with sourceTypes; [
+      fromSource
+      binaryBytecode  # source bundles dependencies as jars
+    ];
     license = licenses.asl20;
     maintainers = lib.teams.bazel.members;
     inherit platforms;
@@ -202,12 +208,16 @@ stdenv.mkDerivation rec {
       src = ../bazel_rc.patch;
       bazelSystemBazelRCPath = bazelRC;
     })
+
+    # disable suspend detection during a build inside Nix as this is
+    # not available inside the darwin sandbox
+    ./bazel_darwin_sandbox.patch
   ] ++ lib.optional enableNixHacks ../nix-hacks.patch;
 
 
   # Additional tests that check bazel’s functionality. Execute
   #
-  #     nix-build . -A bazel.tests
+  #     nix-build . -A bazel_5.tests
   #
   # in the nixpkgs checkout root to exercise them locally.
   passthru.tests =
@@ -215,7 +225,7 @@ stdenv.mkDerivation rec {
       runLocal = name: attrs: script:
       let
         attrs' = removeAttrs attrs [ "buildInputs" ];
-        buildInputs = [ python3 which ] ++ (attrs.buildInputs or []);
+        buildInputs = attrs.buildInputs or [];
       in
       runCommandCC name ({
         inherit buildInputs;
@@ -281,13 +291,13 @@ stdenv.mkDerivation rec {
 
     in (if !stdenv.hostPlatform.isDarwin then {
       # `extracted` doesn’t work on darwin
-      shebang = callPackage ../shebang-test.nix { inherit runLocal extracted bazelTest distDir; };
+      shebang = callPackage ../shebang-test.nix { inherit runLocal extracted bazelTest distDir; bazel = bazel_self;};
     } else {}) // {
-      bashTools = callPackage ../bash-tools-test.nix { inherit runLocal bazelTest distDir; };
-      cpp = callPackage ../cpp-test.nix { inherit runLocal bazelTest bazel-examples distDir; };
-      java = callPackage ../java-test.nix { inherit runLocal bazelTest bazel-examples distDir; };
-      protobuf = callPackage ../protobuf-test.nix { inherit runLocal bazelTest distDir; };
-      pythonBinPath = callPackage ../python-bin-path-test.nix { inherit runLocal bazelTest distDir; };
+      bashTools = callPackage ../bash-tools-test.nix { inherit runLocal bazelTest distDir; bazel = bazel_self;};
+      cpp = callPackage ../cpp-test.nix { inherit runLocal bazelTest bazel-examples distDir; bazel = bazel_self;};
+      java = callPackage ../java-test.nix { inherit runLocal bazelTest bazel-examples distDir; bazel = bazel_self;};
+      protobuf = callPackage ../protobuf-test.nix { inherit runLocal bazelTest distDir; bazel = bazel_self; };
+      pythonBinPath = callPackage ../python-bin-path-test.nix { inherit runLocal bazelTest distDir; bazel = bazel_self;};
 
       bashToolsWithNixHacks = callPackage ../bash-tools-test.nix { inherit runLocal bazelTest distDir; bazel = bazelWithNixHacks; };
 
@@ -372,10 +382,11 @@ stdenv.mkDerivation rec {
       # clang installed from Xcode has a compatibility wrapper that forwards
       # invocations of gcc to clang, but vanilla clang doesn't
       sed -i -e 's;_find_generic(repository_ctx, "gcc", "CC", overriden_tools);_find_generic(repository_ctx, "clang", "CC", overriden_tools);g' tools/cpp/unix_cc_configure.bzl
-
-      sed -i -e 's;/usr/bin/libtool;${cctools}/bin/libtool;g' tools/cpp/unix_cc_configure.bzl
+      sed -i -e 's;env -i codesign --identifier $@ --force --sign;env -i CODESIGN_ALLOCATE=${cctools}/bin/${cctools.targetPrefix}codesign_allocate ${sigtool}/bin/codesign --identifier $@ --force -s;g' tools/osx/BUILD
+      sed -i -e 's;"/usr/bin/libtool";_find_generic(repository_ctx, "libtool", "LIBTOOL", overriden_tools);g' tools/cpp/unix_cc_configure.bzl
       wrappers=( tools/cpp/osx_cc_wrapper.sh tools/cpp/osx_cc_wrapper.sh.tpl )
       for wrapper in "''${wrappers[@]}"; do
+        sed -i -e "s,/usr/bin/gcc,${stdenv.cc}/bin/clang,g" $wrapper
         sed -i -e "s,/usr/bin/install_name_tool,${cctools}/bin/install_name_tool,g" $wrapper
       done
     '';
@@ -582,6 +593,7 @@ stdenv.mkDerivation rec {
     # The binary _must_ exist with this naming if your project contains a .bazelversion
     # file.
     cp ./bazel_src/scripts/packages/bazel.sh $out/bin/bazel
+    wrapProgram $out/bin/bazel $wrapperfile --suffix PATH : ${defaultShellPath}
     mv ./bazel_src/output/bazel $out/bin/bazel-${version}-${system}-${arch}
 
     mkdir $out/share
@@ -658,4 +670,3 @@ stdenv.mkDerivation rec {
   dontStrip = true;
   dontPatchELF = true;
 }
-

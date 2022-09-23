@@ -7,14 +7,13 @@
 # beware of null defaults, as the parameters *are* supplied by callPackage by default
 }:
 
-with lib;
 stdenv.mkDerivation rec {
   pname = "weston";
-  version = "10.0.0";
+  version = "10.0.1";
 
   src = fetchurl {
-    url = "https://wayland.freedesktop.org/releases/${pname}-${version}.tar.xz";
-    sha256 = "1bj7wnadr7ssn6xw7k8ki0wpj6np3kjd2pcysfz3h0mr290rc8sw";
+    url = "https://gitlab.freedesktop.org/wayland/weston/-/releases/${version}/downloads/weston-${version}.tar.xz";
+    sha256 = "05a10gfbadyxkwgsncc5vc343f493csgh10vk0878nl6d98557la";
   };
 
   patches = [
@@ -34,25 +33,25 @@ stdenv.mkDerivation rec {
   ];
 
   mesonFlags= [
-    "-Dbackend-drm-screencast-vaapi=${boolToString (vaapi != null)}"
-    "-Dbackend-rdp=${boolToString (freerdp != null)}"
-    "-Dxwayland=${boolToString (xwayland != null)}" # Default is true!
+    "-Dbackend-drm-screencast-vaapi=${lib.boolToString (vaapi != null)}"
+    "-Dbackend-rdp=${lib.boolToString (freerdp != null)}"
+    "-Dxwayland=${lib.boolToString (xwayland != null)}" # Default is true!
     "-Dremoting=false" # TODO
-    "-Dpipewire=${boolToString (pipewire != null)}"
-    "-Dimage-webp=${boolToString (libwebp != null)}"
+    "-Dpipewire=${lib.boolToString (pipewire != null)}"
+    "-Dimage-webp=${lib.boolToString (libwebp != null)}"
     "-Ddemo-clients=false"
     "-Dsimple-clients="
     "-Dtest-junit-xml=false"
     # TODO:
     #"--enable-clients"
     #"--disable-setuid-install" # prevent install target to chown root weston-launch, which fails
-  ] ++ optionals (xwayland != null) [
+  ] ++ lib.optionals (xwayland != null) [
     "-Dxwayland-path=${xwayland.out}/bin/Xwayland"
   ];
 
   passthru.providedSessions = [ "weston" ];
 
-  meta = {
+  meta = with lib; {
     description = "A lightweight and functional Wayland compositor";
     longDescription = ''
       Weston is the reference implementation of a Wayland compositor, as well

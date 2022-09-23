@@ -16,6 +16,7 @@
 , idna
 , jinja2
 , jsondiff
+, openapi-spec-validator
 , python-dateutil
 , python-jose
 , pytz
@@ -35,15 +36,20 @@
 
 buildPythonPackage rec {
   pname = "moto";
-  version = "3.1.3";
+  version = "4.0.3";
   format = "setuptools";
 
   disabled = pythonOlder "3.6";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "sha256-+kgVlfVhHZ/r2vCg0Skwe1433mh2w30DXO7+Rs59isA=";
+    sha256 = "sha256-iutWdX5oavPkpj+Qr7yXPLIxrarYfFzonmiTbBCbC+k=";
   };
+
+  postPatch = ''
+    substituteInPlace setup.py \
+      --replace "werkzeug>=0.5,<2.2.0" "werkzeug>=0.5"
+  '';
 
   propagatedBuildInputs = [
     aws-xray-sdk
@@ -58,6 +64,7 @@ buildPythonPackage rec {
     idna
     jinja2
     jsondiff
+    openapi-spec-validator
     python-dateutil
     python-jose
     pytz
@@ -94,6 +101,11 @@ buildPythonPackage rec {
     "--deselect=tests/test_iotdata/test_iotdata.py::test_delete_field_from_device_shadow"
     "--deselect=tests/test_iotdata/test_iotdata.py::test_publish"
     "--deselect=tests/test_s3/test_server.py::test_s3_server_bucket_versioning"
+    "--deselect=tests/test_s3/test_multiple_accounts_server.py::TestAccountIdResolution::test_with_custom_request_header"
+
+    # Disalbe test that require docker daemon
+    "--deselect=tests/test_events/test_events_lambdatriggers_integration.py::test_creating_bucket__invokes_lambda"
+    "--deselect=tests/test_s3/test_s3_lambda_integration.py::test_objectcreated_put__invokes_lambda"
 
     # json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
     "--deselect=tests/test_cloudformation/test_cloudformation_stack_integration.py::test_lambda_function"
@@ -124,6 +136,9 @@ buildPythonPackage rec {
   disabledTests = [
     # only appears in aarch64 currently, but best to be safe
     "test_state_machine_list_executions_with_filter"
+    # tests fail with 404 after Werkzeug 2.2 upgrade, see https://github.com/spulec/moto/issues/5341#issuecomment-1206995825
+    "test_appsync_list_tags_for_resource"
+    "test_s3_server_post_to_bucket_redirect"
   ];
 
   meta = with lib; {

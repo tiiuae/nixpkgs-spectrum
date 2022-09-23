@@ -5,6 +5,6 @@
 #       Example: nix-shell ./maintainers/scripts/update.nix --argstr package cacert
 
 import ./generic.nix {
-  version = "3.78";
-  sha256 = "sha256-9FXzQeeHwRZzKOgKhPd7mlV9WVBm3aZIahh01y2miAA=";
+  version = "3.83";
+  hash = "sha256-qyPqZ/lkCQuLc8gKZ0CCVxw25fTrqSBXrGSMnB3vASg=";
 }

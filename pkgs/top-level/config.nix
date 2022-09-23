@@ -35,6 +35,7 @@ let
 
     warnUndeclaredOptions = mkOption {
       description = "Whether to warn when <literal>config</literal> contains an unrecognized attribute.";
+      type = types.bool;
       default = false;
     };
 
@@ -48,6 +49,10 @@ let
 
     enableParallelBuildingByDefault = mkMassRebuild {
       feature = "set <literal>enableParallelBuilding</literal> to true by default";
+    };
+
+    configurePlatformsByDefault = mkMassRebuild {
+      feature = "set <literal>configurePlatforms</literal> to <literal>[\"build\" \"host\"]</literal> by default";
     };
 
     contentAddressedByDefault = mkMassRebuild {
@@ -139,7 +144,7 @@ in {
 
   config = {
     warnings = lib.optionals config.warnUndeclaredOptions (
-      lib.mapAttrsToList (k: v: "undeclared Nixpkgs option set: config.${k}") config._undeclared
+      lib.mapAttrsToList (k: v: "undeclared Nixpkgs option set: config.${k}") config._undeclared or {}
     );
   };
 

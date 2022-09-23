@@ -2,24 +2,26 @@
 , bcrypt
 , buildPythonPackage
 , cryptography
+, fetchpatch
 , fetchPypi
+, gssapi
 , invoke
 , mock
 , pyasn1
 , pynacl
 , pytest-relaxed
 , pytestCheckHook
-, fetchpatch
+, six
 }:
 
 buildPythonPackage rec {
   pname = "paramiko";
-  version = "2.10.4";
+  version = "2.11.0";
   format = "setuptools";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "sha256-PS5lC2gSzm0WCr/3AdbvRDTsl5NLE+lc8a09pw/7XFg=";
+    sha256 = "sha256-AD5r7nwDTCH7sFG/g9wKnuQQYgTdPFMFTHFFLMTsOTg=";
   };
 
   patches = [
@@ -35,25 +37,24 @@ buildPythonPackage rec {
     bcrypt
     cryptography
     pyasn1
-    pynacl
-  ];
+    six
+  ] ++ passthru.optional-dependencies.ed25519; # remove on 3.0 update
+
+  passthru.optional-dependencies = {
+    gssapi = [ pyasn1 gssapi ];
+    ed25519 = [ pynacl bcrypt ];
+    invoke = [ invoke ];
+  };
 
   checkInputs = [
-    invoke
     mock
-    pytest-relaxed
     pytestCheckHook
-  ];
-
-  # with python 3.9.6+, the deprecation warnings will fail the test suite
-  # see: https://github.com/pyinvoke/invoke/issues/829
-  # pytest-relaxed does not work with pytest 6
-  # see: https://github.com/bitprophet/pytest-relaxed/issues/12
-  doCheck = false;
+  ] ++ lib.flatten (builtins.attrValues passthru.optional-dependencies);
 
   disabledTestPaths = [
-    "tests/test_sftp.py"
-    "tests/test_config.py"
+    # disable tests that require pytest-relaxed, which is broken
+    "tests/test_client.py"
+    "tests/test_ssh_gss.py"
   ];
 
   pythonImportsCheck = [
