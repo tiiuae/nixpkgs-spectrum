@@ -5,12 +5,12 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "crosvm";
-  version = "104.0";
+  version = "106.2";
 
   src = fetchgit {
     url = "https://chromium.googlesource.com/chromiumos/platform/crosvm";
-    rev = "265aab613b1eb31598ea0826f04810d9f010a2c6";
-    sha256 = "OzbtPHs6BWK83RZ/6eCQHA61X6SY8FoBkaN70a37pvc=";
+    rev = "d58d398581724e81ce57a8dfaeef62c175c06552";
+    sha256 = "huZELmB1oH5RyasmpEXIcJ/mB4fi6fMofj1N01COeI8=";
     fetchSubmodules = true;
   };
 
@@ -20,7 +20,7 @@ rustPlatform.buildRustPackage rec {
     ./default-seccomp-policy-dir.diff
   ];
 
-  cargoLock.lockFile = ./Cargo.lock;
+  cargoSha256 = "18mj0zc6yfwyrw6v1vl089dhh04kv2pzb99bygnn8nymdlx4fjqa";
 
   nativeBuildInputs = [ minijail-tools pkg-config protobuf wayland-scanner ];
 
@@ -31,7 +31,6 @@ rustPlatform.buildRustPackage rec {
   arch = stdenv.hostPlatform.parsed.cpu.name;
 
   postPatch = ''
-    cp ${cargoLock.lockFile} Cargo.lock
     sed -i "s|/usr/share/policy/crosvm/|$PWD/seccomp/$arch/|g" \
         seccomp/$arch/*.policy
   '';

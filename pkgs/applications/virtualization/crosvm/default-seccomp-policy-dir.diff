@@ -1,15 +1,23 @@
-diff --git i/src/crosvm.rs w/src/crosvm.rs
-index ab7c466b..636dc140 100644
---- i/src/crosvm.rs
-+++ w/src/crosvm.rs
-@@ -345,7 +345,9 @@ impl Default for JailConfig {
-     fn default() -> Self {
-         JailConfig {
-             pivot_root: PathBuf::from(option_env!("DEFAULT_PIVOT_ROOT").unwrap_or("/var/empty")),
--            seccomp_policy_dir: PathBuf::from(SECCOMP_POLICY_DIR),
-+            seccomp_policy_dir: PathBuf::from(
-+                option_env!("DEFAULT_SECCOMP_POLICY_DIR").unwrap_or(SECCOMP_POLICY_DIR),
-+            ),
-             seccomp_log_failures: false,
-         }
-     }
+diff --git i/src/crosvm/config.rs w/src/crosvm/config.rs
+index 762ea8dbf8..e29cf0e2f6 100644
+--- i/src/crosvm/config.rs
++++ w/src/crosvm/config.rs
+@@ -64,7 +64,6 @@ cfg_if::cfg_if! {
+ 
+         static KVM_PATH: &str = "/dev/kvm";
+         static VHOST_NET_PATH: &str = "/dev/vhost-net";
+-        static SECCOMP_POLICY_DIR: &str = "/usr/share/policy/crosvm";
+     } else if #[cfg(windows)] {
+         use base::{Event, Tube};
+ 
+@@ -533,7 +532,9 @@ fn jail_config_default_pivot_root() -> PathBuf {
+ 
+ #[cfg(unix)]
+ fn jail_config_default_seccomp_policy_dir() -> Option<PathBuf> {
+-    Some(PathBuf::from(SECCOMP_POLICY_DIR))
++    Some(PathBuf::from(
++        option_env!("DEFAULT_SECCOMP_POLICY_DIR").unwrap_or("/usr/share/policy/crosvm"),
++    ))
+ }
+ 
+ #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, serde_keyvalue::FromKeyValues)]
