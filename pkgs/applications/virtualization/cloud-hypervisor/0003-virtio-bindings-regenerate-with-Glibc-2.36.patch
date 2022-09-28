@@ -1,0 +1,247 @@
+From e83b5b0a8d2c3b7a380d7741d7e20824cdc8245f Mon Sep 17 00:00:00 2001
+From: Alyssa Ross <alyssa.ross@unikie.com>
+Date: Wed, 31 Aug 2022 16:28:41 +0000
+Subject: [PATCH 3/5] virtio-bindings: regenerate with Glibc 2.36
+
+In future, it would be good to exclude a lot of these Glibc
+re-exports.  They're probably not required for all the virtio bindings
+we want to expose.
+
+Signed-off-by: Alyssa Ross <alyssa.ross@unikie.com>
+---
+ crates/virtio-bindings/src/virtio_net.rs  |  34 ++++++
+ crates/virtio-bindings/src/virtio_ring.rs | 122 +++++++++++++++++++++-
+ 2 files changed, 151 insertions(+), 5 deletions(-)
+
+diff --git a/crates/virtio-bindings/src/virtio_net.rs b/crates/virtio-bindings/src/virtio_net.rs
+index 479392e..5707375 100644
+--- a/crates/virtio-bindings/src/virtio_net.rs
++++ b/crates/virtio-bindings/src/virtio_net.rs
+@@ -929,6 +929,40 @@ fn bindgen_test_layout_virtio_net_ctrl_mac() {
+         1usize,
+         concat!("Alignment of ", stringify!(virtio_net_ctrl_mac))
+     );
++    fn test_field_entries() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<virtio_net_ctrl_mac>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).entries) as usize - ptr as usize
++            },
++            0usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_ctrl_mac),
++                "::",
++                stringify!(entries)
++            )
++        );
++    }
++    test_field_entries();
++    fn test_field_macs() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<virtio_net_ctrl_mac>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).macs) as usize - ptr as usize
++            },
++            4usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_ctrl_mac),
++                "::",
++                stringify!(macs)
++            )
++        );
++    }
++    test_field_macs();
+ }
+ impl Default for virtio_net_ctrl_mac {
+     fn default() -> Self {
+diff --git a/crates/virtio-bindings/src/virtio_ring.rs b/crates/virtio-bindings/src/virtio_ring.rs
+index 13fa409..60b84ab 100644
+--- a/crates/virtio-bindings/src/virtio_ring.rs
++++ b/crates/virtio-bindings/src/virtio_ring.rs
+@@ -33,6 +33,7 @@ impl<T> ::std::fmt::Debug for __IncompleteArrayField<T> {
+ pub const _STDINT_H: u32 = 1;
+ pub const _FEATURES_H: u32 = 1;
+ pub const _DEFAULT_SOURCE: u32 = 1;
++pub const __GLIBC_USE_ISOC2X: u32 = 0;
+ pub const __USE_ISOC11: u32 = 1;
+ pub const __USE_ISOC99: u32 = 1;
+ pub const __USE_ISOC95: u32 = 1;
+@@ -46,6 +47,10 @@ pub const __USE_POSIX199506: u32 = 1;
+ pub const __USE_XOPEN2K: u32 = 1;
+ pub const __USE_XOPEN2K8: u32 = 1;
+ pub const _ATFILE_SOURCE: u32 = 1;
++pub const __WORDSIZE: u32 = 64;
++pub const __WORDSIZE_TIME64_COMPAT32: u32 = 1;
++pub const __SYSCALL_WORDSIZE: u32 = 64;
++pub const __TIMESIZE: u32 = 64;
+ pub const __USE_MISC: u32 = 1;
+ pub const __USE_ATFILE: u32 = 1;
+ pub const __USE_FORTIFY_LEVEL: u32 = 0;
+@@ -53,27 +58,31 @@ pub const __GLIBC_USE_DEPRECATED_GETS: u32 = 0;
+ pub const __GLIBC_USE_DEPRECATED_SCANF: u32 = 0;
+ pub const _STDC_PREDEF_H: u32 = 1;
+ pub const __STDC_IEC_559__: u32 = 1;
++pub const __STDC_IEC_60559_BFP__: u32 = 201404;
+ pub const __STDC_IEC_559_COMPLEX__: u32 = 1;
++pub const __STDC_IEC_60559_COMPLEX__: u32 = 201404;
+ pub const __STDC_ISO_10646__: u32 = 201706;
+ pub const __GNU_LIBRARY__: u32 = 6;
+ pub const __GLIBC__: u32 = 2;
+-pub const __GLIBC_MINOR__: u32 = 29;
++pub const __GLIBC_MINOR__: u32 = 36;
+ pub const _SYS_CDEFS_H: u32 = 1;
+ pub const __glibc_c99_flexarr_available: u32 = 1;
+-pub const __WORDSIZE: u32 = 64;
+-pub const __WORDSIZE_TIME64_COMPAT32: u32 = 1;
+-pub const __SYSCALL_WORDSIZE: u32 = 64;
++pub const __LDOUBLE_REDIRECTS_TO_FLOAT128_ABI: u32 = 0;
+ pub const __HAVE_GENERIC_SELECTION: u32 = 1;
+ pub const __GLIBC_USE_LIB_EXT2: u32 = 0;
+ pub const __GLIBC_USE_IEC_60559_BFP_EXT: u32 = 0;
++pub const __GLIBC_USE_IEC_60559_BFP_EXT_C2X: u32 = 0;
++pub const __GLIBC_USE_IEC_60559_EXT: u32 = 0;
+ pub const __GLIBC_USE_IEC_60559_FUNCS_EXT: u32 = 0;
++pub const __GLIBC_USE_IEC_60559_FUNCS_EXT_C2X: u32 = 0;
+ pub const __GLIBC_USE_IEC_60559_TYPES_EXT: u32 = 0;
+ pub const _BITS_TYPES_H: u32 = 1;
+-pub const __TIMESIZE: u32 = 64;
+ pub const _BITS_TYPESIZES_H: u32 = 1;
+ pub const __OFF_T_MATCHES_OFF64_T: u32 = 1;
+ pub const __INO_T_MATCHES_INO64_T: u32 = 1;
+ pub const __RLIM_T_MATCHES_RLIM64_T: u32 = 1;
++pub const __STATFS_MATCHES_STATFS64: u32 = 1;
++pub const __KERNEL_OLD_TIMEVAL_MATCHES_TIMEVAL64: u32 = 1;
+ pub const __FD_SETSIZE: u32 = 1024;
+ pub const _BITS_TIME64_H: u32 = 1;
+ pub const _BITS_WCHAR_H: u32 = 1;
+@@ -209,6 +218,7 @@ pub type __id_t = ::std::os::raw::c_uint;
+ pub type __time_t = ::std::os::raw::c_long;
+ pub type __useconds_t = ::std::os::raw::c_uint;
+ pub type __suseconds_t = ::std::os::raw::c_long;
++pub type __suseconds64_t = ::std::os::raw::c_long;
+ pub type __daddr_t = ::std::os::raw::c_int;
+ pub type __key_t = ::std::os::raw::c_int;
+ pub type __clockid_t = ::std::os::raw::c_int;
+@@ -477,6 +487,57 @@ fn bindgen_test_layout_vring_avail() {
+         2usize,
+         concat!("Alignment of ", stringify!(vring_avail))
+     );
++    fn test_field_flags() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<vring_avail>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).flags) as usize - ptr as usize
++            },
++            0usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(vring_avail),
++                "::",
++                stringify!(flags)
++            )
++        );
++    }
++    test_field_flags();
++    fn test_field_idx() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<vring_avail>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).idx) as usize - ptr as usize
++            },
++            2usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(vring_avail),
++                "::",
++                stringify!(idx)
++            )
++        );
++    }
++    test_field_idx();
++    fn test_field_ring() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<vring_avail>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).ring) as usize - ptr as usize
++            },
++            4usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(vring_avail),
++                "::",
++                stringify!(ring)
++            )
++        );
++    }
++    test_field_ring();
+ }
+ #[repr(C)]
+ #[derive(Debug, Default, Copy, Clone, PartialEq)]
+@@ -550,6 +611,57 @@ fn bindgen_test_layout_vring_used() {
+         4usize,
+         concat!("Alignment of ", stringify!(vring_used))
+     );
++    fn test_field_flags() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<vring_used>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).flags) as usize - ptr as usize
++            },
++            0usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(vring_used),
++                "::",
++                stringify!(flags)
++            )
++        );
++    }
++    test_field_flags();
++    fn test_field_idx() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<vring_used>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).idx) as usize - ptr as usize
++            },
++            2usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(vring_used),
++                "::",
++                stringify!(idx)
++            )
++        );
++    }
++    test_field_idx();
++    fn test_field_ring() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<vring_used>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).ring) as usize - ptr as usize
++            },
++            4usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(vring_used),
++                "::",
++                stringify!(ring)
++            )
++        );
++    }
++    test_field_ring();
+ }
+ #[repr(C)]
+ #[derive(Debug, Copy, Clone, PartialEq)]
+-- 
+2.37.1
+
