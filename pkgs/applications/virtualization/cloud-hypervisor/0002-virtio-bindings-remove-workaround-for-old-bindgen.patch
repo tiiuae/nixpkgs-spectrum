@@ -1,0 +1,28 @@
+From f29e97e490efac68d3d8c92a50716fb2db76e7df Mon Sep 17 00:00:00 2001
+From: Alyssa Ross <alyssa.ross@unikie.com>
+Date: Wed, 31 Aug 2022 16:37:13 +0000
+Subject: [PATCH 2/5] virtio-bindings: remove workaround for old bindgen
+
+The linked issue was fixed in bindgen 0.60.0.
+
+Signed-off-by: Alyssa Ross <alyssa.ross@unikie.com>
+---
+ crates/virtio-bindings/src/lib.rs | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/crates/virtio-bindings/src/lib.rs b/crates/virtio-bindings/src/lib.rs
+index 257ebfc..9702f17 100644
+--- a/crates/virtio-bindings/src/lib.rs
++++ b/crates/virtio-bindings/src/lib.rs
+@@ -5,8 +5,6 @@
+ #![allow(non_upper_case_globals)]
+ #![allow(non_camel_case_types)]
+ #![allow(non_snake_case)]
+-// Keep this until https://github.com/rust-lang/rust-bindgen/issues/1651 is fixed.
+-#![cfg_attr(test, allow(deref_nullptr, unaligned_references))]
+ 
+ pub mod virtio_blk;
+ pub mod virtio_net;
+-- 
+2.37.1
+
