@@ -53,7 +53,7 @@ stdenv.mkDerivation rec {
   ];
 
   buildInputs =
-    if enableSystemd then [ udev ] else [ eudev ];
+    if enableSystemd then [ udev libcap ] else [ eudev libcap ];
 
   # Inspired by the systemd `preConfigure`.
   # Conceptually we should patch all files required during the build, but not scripts
