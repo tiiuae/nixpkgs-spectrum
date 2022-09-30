@@ -16,7 +16,11 @@
 , armTrustedFirmwareRK3328
 , armTrustedFirmwareRK3399
 , armTrustedFirmwareS905
+, armTrustedFirmwareIMX8QXP
+, armTrustedFirmwareIMX8QM
 , buildPackages
+, imx-firmware
+, imx-mkimage
 }:
 
 let
@@ -514,5 +518,57 @@ in {
     extraMeta.platforms = ["aarch64-linux"];
     BL31 = "${armTrustedFirmwareRK3399}/bl31.elf";
     filesToInstall = [ "u-boot.itb" "idbloader.img"];
+  };
+
+  ubootIMX8QXP = buildUBoot {
+    version = "2022.04";
+    src = fetchGit {
+      url = "https://github.com/tiiuae/uboot-imx8.git";
+      ref = "lf_v2022.04-uefi";
+    };
+    BL31 = "${armTrustedFirmwareIMX8QXP}/bl31.bin";
+    enableParallelBuilding = true;
+    defconfig = "imx8qxp_mek_defconfig";
+    extraMeta.platforms = ["aarch64-linux"];
+    filesToInstall = [ "flash.bin" ];
+    preBuildPhases = [ "copyBinaries" ];
+    copyBinaries = ''
+      install -m 0644 ${armTrustedFirmwareIMX8QXP}/bl31.bin ./bl31.bin
+      install -m 0644 ${imx-firmware}/mx8qxc0-ahab-container.img ./ahab-container.img
+      install -m 0644 ${imx-firmware}/mx8qx-mek-scfw-tcm.bin ./mx8qx-mek-scfw-tcm.bin
+    '';
+    postBuild = ''
+      ${buildPackages.imx-mkimage}/bin/mkimage_imx8 -commit > head.hash
+      cat u-boot.bin head.hash > u-boot-hash.bin
+      cp bl31.bin u-boot-atf.bin
+      dd if=u-boot-hash.bin of=u-boot-atf.bin bs=1K seek=128
+      ${buildPackages.imx-mkimage}/bin/mkimage_imx8  -soc QX -rev B0 -append ahab-container.img -c -scfw mx8qx-mek-scfw-tcm.bin -ap u-boot-atf.bin a35 0x80000000 -out flash.bin
+    '';
+  };
+
+  ubootIMX8QM = buildUBoot {
+    version = "2022.04";
+    src = fetchGit {
+      url = "https://github.com/tiiuae/uboot-imx8.git";
+      ref = "lf_v2022.04-uefi";
+    };
+    BL31 = "${armTrustedFirmwareIMX8QM}/bl31.bin";
+    enableParallelBuilding = true;
+    defconfig = "imx8qm_mek_defconfig";
+    extraMeta.platforms = ["aarch64-linux"];
+    filesToInstall = [ "flash.bin" ];
+    preBuildPhases = [ "copyBinaries" ];
+    copyBinaries = ''
+      install -m 0644 ${armTrustedFirmwareIMX8QM}/bl31.bin ./bl31.bin
+      install -m 0644 ${imx-firmware}/mx8qmb0-ahab-container.img ./ahab-container.img
+      install -m 0644 ${imx-firmware}/mx8qm-mek-scfw-tcm.bin ./mx8qm-mek-scfw-tcm.bin
+    '';
+    postBuild = ''
+      ${buildPackages.imx-mkimage}/bin/mkimage_imx8 -commit > head.hash
+      cat u-boot.bin head.hash > u-boot-hash.bin
+      cp bl31.bin u-boot-atf.bin
+      dd if=u-boot-hash.bin of=u-boot-atf.bin bs=1K seek=128
+      ${buildPackages.imx-mkimage}/bin/mkimage_imx8 -soc QM -rev B0 -append ahab-container.img -c -scfw mx8qm-mek-scfw-tcm.bin -ap u-boot-atf.bin a35 0x80000000 -out flash.bin
+    '';
   };
 }

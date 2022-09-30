@@ -22825,7 +22825,13 @@ with pkgs;
     armTrustedFirmwareRK3328
     armTrustedFirmwareRK3399
     armTrustedFirmwareS905
+    armTrustedFirmwareIMX8QXP
+    armTrustedFirmwareIMX8QM
     ;
+
+  imx-firmware = callPackage ../misc/imx-firmware { };
+
+  imx-mkimage = callPackage ../misc/imx-mkimage { };
 
   microcodeAmd = callPackage ../os-specific/linux/microcode/amd.nix { };
 
@@ -23932,6 +23938,8 @@ with pkgs;
     ubootSopine
     ubootUtilite
     ubootWandboard
+    ubootIMX8QXP
+    ubootIMX8QM
     ;
 
   # Upstream Barebox:
