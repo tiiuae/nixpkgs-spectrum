@@ -5,12 +5,12 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "crosvm";
-  version = "106.2";
+  version = "106.2-security-context";
 
   src = fetchgit {
-    url = "https://chromium.googlesource.com/chromiumos/platform/crosvm";
-    rev = "d58d398581724e81ce57a8dfaeef62c175c06552";
-    sha256 = "huZELmB1oH5RyasmpEXIcJ/mB4fi6fMofj1N01COeI8=";
+    url = "https://puck.moe/git/crosvm";
+    rev = "eb1a080dd8432ea7ad400816388d67a5d64081e4";
+    sha256 = "sha256-iExgWO1/PBCWvzV+5Z6UrKxOsHaFED9GcGQGc4rVJw0=";
     fetchSubmodules = true;
   };
 
@@ -24,7 +24,7 @@ rustPlatform.buildRustPackage rec {
     ./devices-vhost_user-loosen-expected-message-order.patch
   ];
 
-  cargoSha256 = "18mj0zc6yfwyrw6v1vl089dhh04kv2pzb99bygnn8nymdlx4fjqa";
+  cargoSha256 = "1fasy7l8ia53739wzz4cgbphn7h4gv1rfz0syqbl4kfl6hy0p1vb";
 
   nativeBuildInputs = [ minijail-tools pkg-config protobuf wayland-scanner ];
 
