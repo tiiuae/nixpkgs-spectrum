@@ -1,0 +1,34 @@
+From f5afb62e138017f28966d8fa20b44fe00f301d7d Mon Sep 17 00:00:00 2001
+From: Puck Meerburg <puck@puckipedia.com>
+Date: Mon, 26 Sep 2022 22:40:53 +0000
+Subject: [PATCH crosvm 1/3] devices: properly consider shm buuffers when
+ setting gpu_blob flag
+
+---
+ devices/src/virtio/gpu/virtio_gpu.rs | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/devices/src/virtio/gpu/virtio_gpu.rs b/devices/src/virtio/gpu/virtio_gpu.rs
+index 698215727a..ed97942f7a 100644
+--- a/devices/src/virtio/gpu/virtio_gpu.rs
++++ b/devices/src/virtio/gpu/virtio_gpu.rs
+@@ -26,6 +26,7 @@ use rutabaga_gfx::RutabagaHandle;
+ use rutabaga_gfx::RutabagaIovec;
+ use rutabaga_gfx::Transfer3D;
+ use rutabaga_gfx::RUTABAGA_MEM_HANDLE_TYPE_DMABUF;
++use rutabaga_gfx::RUTABAGA_MEM_HANDLE_TYPE_SHM;
+ use sync::Mutex;
+ use vm_control::VmMemorySource;
+ use vm_memory::udmabuf::UdmabufDriver;
+@@ -731,7 +732,7 @@ impl VirtioGpu {
+                     descriptor: export.os_handle,
+                     offset: 0,
+                     size: resource.size,
+-                    gpu_blob: true,
++                    gpu_blob: export.handle_type != RUTABAGA_MEM_HANDLE_TYPE_SHM,
+                 },
+             }
+         } else {
+-- 
+2.37.1
+
