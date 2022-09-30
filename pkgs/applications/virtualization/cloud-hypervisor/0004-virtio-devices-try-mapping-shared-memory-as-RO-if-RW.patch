@@ -1,0 +1,57 @@
+From 165787d5cb1969fe855b8fa96d964efeefb96d94 Mon Sep 17 00:00:00 2001
+From: Puck Meerburg <puck@puckipedia.com>
+Date: Fri, 30 Sep 2022 14:10:27 +0000
+Subject: [PATCH 4/4] virtio-devices: try mapping shared memory as RO if RW
+ fails
+
+wlroots' keymaps are read-only, and crosvm does not properly handle
+this, causing cloud-hypervisor to crash. Work around this for now by
+retrying any mmap as read-only if read-write mapping fails.
+---
+ virtio-devices/src/vhost_user/gpu.rs | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
+
+diff --git a/virtio-devices/src/vhost_user/gpu.rs b/virtio-devices/src/vhost_user/gpu.rs
+index b0a9ee7c..2eb18445 100644
+--- a/virtio-devices/src/vhost_user/gpu.rs
++++ b/virtio-devices/src/vhost_user/gpu.rs
+@@ -1,5 +1,6 @@
+ // Copyright 2019 Intel Corporation. All Rights Reserved.
+ // Copyright 2022 Unikie
++// Copyright 2022 Puck Meerburg
+ // SPDX-License-Identifier: Apache-2.0
+ 
+ use crate::seccomp_filters::Thread;
+@@ -59,7 +60,7 @@ impl VhostUserMasterReqHandler for SlaveReqHandler {
+         }
+ 
+         let addr = self.mmap_cache_addr + req.shm_offset;
+-        let ret = unsafe {
++        let mut ret = unsafe {
+             libc::mmap(
+                 addr as *mut libc::c_void,
+                 req.len as usize,
+@@ -69,6 +70,20 @@ impl VhostUserMasterReqHandler for SlaveReqHandler {
+                 req.fd_offset as libc::off_t,
+             )
+         };
++
++        if ret == libc::MAP_FAILED {
++            ret = unsafe {
++                libc::mmap(
++                    addr as *mut libc::c_void,
++                    req.len as usize,
++                    (req.flags.bits() as i32) & !libc::PROT_WRITE,
++                    libc::MAP_SHARED | libc::MAP_FIXED,
++                    fd.as_raw_fd(),
++                    req.fd_offset as libc::off_t,
++                )
++            };
++        }
++
+         if ret == libc::MAP_FAILED {
+             return Err(io::Error::last_os_error());
+         }
+-- 
+2.35.1
+

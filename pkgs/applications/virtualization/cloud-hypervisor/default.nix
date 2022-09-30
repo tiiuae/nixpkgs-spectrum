@@ -39,6 +39,7 @@ rustPlatform.buildRustPackage rec {
     ./0001-build-use-local-vhost.patch
     ./0002-build-use-local-virtio-bindings.patch
     ./0003-virtio-devices-add-a-vhost-user-gpu-device.patch
+    ./0004-virtio-devices-try-mapping-shared-memory-as-RO-if-RW.patch
   ];
 
   vhostPatches = [
