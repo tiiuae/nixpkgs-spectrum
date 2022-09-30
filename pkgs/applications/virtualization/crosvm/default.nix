@@ -18,6 +18,10 @@ rustPlatform.buildRustPackage rec {
 
   patches = [
     ./default-seccomp-policy-dir.diff
+
+    ./devices-properly-consider-shm-buuffers-when-setting-.patch
+    ./devices-vhost_user-remove-spurious-check.patch
+    ./devices-vhost_user-loosen-expected-message-order.patch
   ];
 
   cargoSha256 = "18mj0zc6yfwyrw6v1vl089dhh04kv2pzb99bygnn8nymdlx4fjqa";
