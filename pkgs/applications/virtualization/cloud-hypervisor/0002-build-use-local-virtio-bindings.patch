@@ -1,0 +1,39 @@
+From f8d05ec6b4b581069da14fe54df93b932223cd24 Mon Sep 17 00:00:00 2001
+From: Alyssa Ross <alyssa.ross@unikie.com>
+Date: Wed, 28 Sep 2022 12:30:42 +0000
+Subject: [PATCH 2/3] build: use local virtio-bindings
+
+Signed-off-by: Alyssa Ross <alyssa.ross@unikie.com>
+---
+ Cargo.lock | 2 --
+ Cargo.toml | 1 +
+ 2 files changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/Cargo.lock b/Cargo.lock
+index b869b6ee..d119f28e 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -1319,8 +1319,6 @@ dependencies = [
+ [[package]]
+ name = "virtio-bindings"
+ version = "0.1.0"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "3ff512178285488516ed85f15b5d0113a7cdb89e9e8a760b269ae4f02b84bd6b"
+ 
+ [[package]]
+ name = "virtio-devices"
+diff --git a/Cargo.toml b/Cargo.toml
+index 2294b4c3..8900236a 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -42,6 +42,7 @@ kvm-bindings = { git = "https://github.com/cloud-hypervisor/kvm-bindings", branc
+ kvm-ioctls = { git = "https://github.com/rust-vmm/kvm-ioctls", branch = "main" }
+ versionize_derive = { git = "https://github.com/cloud-hypervisor/versionize_derive", branch = "ch" }
+ vhost = { path = "../vhost" }
++virtio-bindings = { path = "../virtio-bindings" }
+ 
+ [dev-dependencies]
+ dirs = "4.0.0"
+-- 
+2.37.1
+
