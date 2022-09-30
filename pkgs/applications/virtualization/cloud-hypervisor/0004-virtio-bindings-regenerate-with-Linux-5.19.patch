@@ -1,0 +1,1067 @@
+From b7806189fb4407221f33ea8869b89bbaa997f4b1 Mon Sep 17 00:00:00 2001
+From: Alyssa Ross <alyssa.ross@unikie.com>
+Date: Wed, 31 Aug 2022 17:10:30 +0000
+Subject: [PATCH 4/5] virtio-bindings: regenerate with Linux 5.19
+
+Signed-off-by: Alyssa Ross <alyssa.ross@unikie.com>
+---
+ crates/virtio-bindings/src/virtio_blk.rs  |  61 +-
+ crates/virtio-bindings/src/virtio_net.rs  | 749 ++++++++++++++++++++--
+ crates/virtio-bindings/src/virtio_ring.rs |  13 +-
+ 3 files changed, 765 insertions(+), 58 deletions(-)
+
+diff --git a/crates/virtio-bindings/src/virtio_blk.rs b/crates/virtio-bindings/src/virtio_blk.rs
+index 94daca3..71151a3 100644
+--- a/crates/virtio-bindings/src/virtio_blk.rs
++++ b/crates/virtio-bindings/src/virtio_blk.rs
+@@ -7,15 +7,47 @@ pub const VIRTIO_ID_BLOCK: u32 = 2;
+ pub const VIRTIO_ID_CONSOLE: u32 = 3;
+ pub const VIRTIO_ID_RNG: u32 = 4;
+ pub const VIRTIO_ID_BALLOON: u32 = 5;
++pub const VIRTIO_ID_IOMEM: u32 = 6;
+ pub const VIRTIO_ID_RPMSG: u32 = 7;
+ pub const VIRTIO_ID_SCSI: u32 = 8;
+ pub const VIRTIO_ID_9P: u32 = 9;
++pub const VIRTIO_ID_MAC80211_WLAN: u32 = 10;
+ pub const VIRTIO_ID_RPROC_SERIAL: u32 = 11;
+ pub const VIRTIO_ID_CAIF: u32 = 12;
++pub const VIRTIO_ID_MEMORY_BALLOON: u32 = 13;
+ pub const VIRTIO_ID_GPU: u32 = 16;
++pub const VIRTIO_ID_CLOCK: u32 = 17;
+ pub const VIRTIO_ID_INPUT: u32 = 18;
+ pub const VIRTIO_ID_VSOCK: u32 = 19;
+ pub const VIRTIO_ID_CRYPTO: u32 = 20;
++pub const VIRTIO_ID_SIGNAL_DIST: u32 = 21;
++pub const VIRTIO_ID_PSTORE: u32 = 22;
++pub const VIRTIO_ID_IOMMU: u32 = 23;
++pub const VIRTIO_ID_MEM: u32 = 24;
++pub const VIRTIO_ID_SOUND: u32 = 25;
++pub const VIRTIO_ID_FS: u32 = 26;
++pub const VIRTIO_ID_PMEM: u32 = 27;
++pub const VIRTIO_ID_RPMB: u32 = 28;
++pub const VIRTIO_ID_MAC80211_HWSIM: u32 = 29;
++pub const VIRTIO_ID_VIDEO_ENCODER: u32 = 30;
++pub const VIRTIO_ID_VIDEO_DECODER: u32 = 31;
++pub const VIRTIO_ID_SCMI: u32 = 32;
++pub const VIRTIO_ID_NITRO_SEC_MOD: u32 = 33;
++pub const VIRTIO_ID_I2C_ADAPTER: u32 = 34;
++pub const VIRTIO_ID_WATCHDOG: u32 = 35;
++pub const VIRTIO_ID_CAN: u32 = 36;
++pub const VIRTIO_ID_DMABUF: u32 = 37;
++pub const VIRTIO_ID_PARAM_SERV: u32 = 38;
++pub const VIRTIO_ID_AUDIO_POLICY: u32 = 39;
++pub const VIRTIO_ID_BT: u32 = 40;
++pub const VIRTIO_ID_GPIO: u32 = 41;
++pub const VIRTIO_TRANS_ID_NET: u32 = 4096;
++pub const VIRTIO_TRANS_ID_BLOCK: u32 = 4097;
++pub const VIRTIO_TRANS_ID_BALLOON: u32 = 4098;
++pub const VIRTIO_TRANS_ID_CONSOLE: u32 = 4099;
++pub const VIRTIO_TRANS_ID_SCSI: u32 = 4100;
++pub const VIRTIO_TRANS_ID_RNG: u32 = 4101;
++pub const VIRTIO_TRANS_ID_9P: u32 = 4105;
+ pub const VIRTIO_CONFIG_S_ACKNOWLEDGE: u32 = 1;
+ pub const VIRTIO_CONFIG_S_DRIVER: u32 = 2;
+ pub const VIRTIO_CONFIG_S_DRIVER_OK: u32 = 4;
+@@ -27,8 +59,10 @@ pub const VIRTIO_TRANSPORT_F_END: u32 = 38;
+ pub const VIRTIO_F_NOTIFY_ON_EMPTY: u32 = 24;
+ pub const VIRTIO_F_ANY_LAYOUT: u32 = 27;
+ pub const VIRTIO_F_VERSION_1: u32 = 32;
++pub const VIRTIO_F_ACCESS_PLATFORM: u32 = 33;
+ pub const VIRTIO_F_IOMMU_PLATFORM: u32 = 33;
+ pub const VIRTIO_F_RING_PACKED: u32 = 34;
++pub const VIRTIO_F_IN_ORDER: u32 = 35;
+ pub const VIRTIO_F_ORDER_PLATFORM: u32 = 36;
+ pub const VIRTIO_F_SR_IOV: u32 = 37;
+ pub const VIRTIO_BLK_F_SIZE_MAX: u32 = 1;
+@@ -160,6 +194,7 @@ fn bindgen_test_layout___kernel_fsid_t() {
+ }
+ pub type __kernel_off_t = __kernel_long_t;
+ pub type __kernel_loff_t = ::std::os::raw::c_longlong;
++pub type __kernel_old_time_t = __kernel_long_t;
+ pub type __kernel_time_t = __kernel_long_t;
+ pub type __kernel_time64_t = ::std::os::raw::c_longlong;
+ pub type __kernel_clock_t = __kernel_long_t;
+@@ -183,30 +218,30 @@ pub type __virtio64 = __u64;
+ #[repr(C, packed)]
+ #[derive(Debug, Default, Copy, Clone, PartialEq)]
+ pub struct virtio_blk_config {
+-    pub capacity: __u64,
+-    pub size_max: __u32,
+-    pub seg_max: __u32,
++    pub capacity: __virtio64,
++    pub size_max: __virtio32,
++    pub seg_max: __virtio32,
+     pub geometry: virtio_blk_config_virtio_blk_geometry,
+-    pub blk_size: __u32,
++    pub blk_size: __virtio32,
+     pub physical_block_exp: __u8,
+     pub alignment_offset: __u8,
+-    pub min_io_size: __u16,
+-    pub opt_io_size: __u32,
++    pub min_io_size: __virtio16,
++    pub opt_io_size: __virtio32,
+     pub wce: __u8,
+     pub unused: __u8,
+-    pub num_queues: __u16,
+-    pub max_discard_sectors: __u32,
+-    pub max_discard_seg: __u32,
+-    pub discard_sector_alignment: __u32,
+-    pub max_write_zeroes_sectors: __u32,
+-    pub max_write_zeroes_seg: __u32,
++    pub num_queues: __virtio16,
++    pub max_discard_sectors: __virtio32,
++    pub max_discard_seg: __virtio32,
++    pub discard_sector_alignment: __virtio32,
++    pub max_write_zeroes_sectors: __virtio32,
++    pub max_write_zeroes_seg: __virtio32,
+     pub write_zeroes_may_unmap: __u8,
+     pub unused1: [__u8; 3usize],
+ }
+ #[repr(C)]
+ #[derive(Debug, Default, Copy, Clone, PartialEq)]
+ pub struct virtio_blk_config_virtio_blk_geometry {
+-    pub cylinders: __u16,
++    pub cylinders: __virtio16,
+     pub heads: __u8,
+     pub sectors: __u8,
+ }
+diff --git a/crates/virtio-bindings/src/virtio_net.rs b/crates/virtio-bindings/src/virtio_net.rs
+index 5707375..f66f69a 100644
+--- a/crates/virtio-bindings/src/virtio_net.rs
++++ b/crates/virtio-bindings/src/virtio_net.rs
+@@ -37,15 +37,47 @@ pub const VIRTIO_ID_BLOCK: u32 = 2;
+ pub const VIRTIO_ID_CONSOLE: u32 = 3;
+ pub const VIRTIO_ID_RNG: u32 = 4;
+ pub const VIRTIO_ID_BALLOON: u32 = 5;
++pub const VIRTIO_ID_IOMEM: u32 = 6;
+ pub const VIRTIO_ID_RPMSG: u32 = 7;
+ pub const VIRTIO_ID_SCSI: u32 = 8;
+ pub const VIRTIO_ID_9P: u32 = 9;
++pub const VIRTIO_ID_MAC80211_WLAN: u32 = 10;
+ pub const VIRTIO_ID_RPROC_SERIAL: u32 = 11;
+ pub const VIRTIO_ID_CAIF: u32 = 12;
++pub const VIRTIO_ID_MEMORY_BALLOON: u32 = 13;
+ pub const VIRTIO_ID_GPU: u32 = 16;
++pub const VIRTIO_ID_CLOCK: u32 = 17;
+ pub const VIRTIO_ID_INPUT: u32 = 18;
+ pub const VIRTIO_ID_VSOCK: u32 = 19;
+ pub const VIRTIO_ID_CRYPTO: u32 = 20;
++pub const VIRTIO_ID_SIGNAL_DIST: u32 = 21;
++pub const VIRTIO_ID_PSTORE: u32 = 22;
++pub const VIRTIO_ID_IOMMU: u32 = 23;
++pub const VIRTIO_ID_MEM: u32 = 24;
++pub const VIRTIO_ID_SOUND: u32 = 25;
++pub const VIRTIO_ID_FS: u32 = 26;
++pub const VIRTIO_ID_PMEM: u32 = 27;
++pub const VIRTIO_ID_RPMB: u32 = 28;
++pub const VIRTIO_ID_MAC80211_HWSIM: u32 = 29;
++pub const VIRTIO_ID_VIDEO_ENCODER: u32 = 30;
++pub const VIRTIO_ID_VIDEO_DECODER: u32 = 31;
++pub const VIRTIO_ID_SCMI: u32 = 32;
++pub const VIRTIO_ID_NITRO_SEC_MOD: u32 = 33;
++pub const VIRTIO_ID_I2C_ADAPTER: u32 = 34;
++pub const VIRTIO_ID_WATCHDOG: u32 = 35;
++pub const VIRTIO_ID_CAN: u32 = 36;
++pub const VIRTIO_ID_DMABUF: u32 = 37;
++pub const VIRTIO_ID_PARAM_SERV: u32 = 38;
++pub const VIRTIO_ID_AUDIO_POLICY: u32 = 39;
++pub const VIRTIO_ID_BT: u32 = 40;
++pub const VIRTIO_ID_GPIO: u32 = 41;
++pub const VIRTIO_TRANS_ID_NET: u32 = 4096;
++pub const VIRTIO_TRANS_ID_BLOCK: u32 = 4097;
++pub const VIRTIO_TRANS_ID_BALLOON: u32 = 4098;
++pub const VIRTIO_TRANS_ID_CONSOLE: u32 = 4099;
++pub const VIRTIO_TRANS_ID_SCSI: u32 = 4100;
++pub const VIRTIO_TRANS_ID_RNG: u32 = 4101;
++pub const VIRTIO_TRANS_ID_9P: u32 = 4105;
+ pub const VIRTIO_CONFIG_S_ACKNOWLEDGE: u32 = 1;
+ pub const VIRTIO_CONFIG_S_DRIVER: u32 = 2;
+ pub const VIRTIO_CONFIG_S_DRIVER_OK: u32 = 4;
+@@ -57,8 +89,10 @@ pub const VIRTIO_TRANSPORT_F_END: u32 = 38;
+ pub const VIRTIO_F_NOTIFY_ON_EMPTY: u32 = 24;
+ pub const VIRTIO_F_ANY_LAYOUT: u32 = 27;
+ pub const VIRTIO_F_VERSION_1: u32 = 32;
++pub const VIRTIO_F_ACCESS_PLATFORM: u32 = 33;
+ pub const VIRTIO_F_IOMMU_PLATFORM: u32 = 33;
+ pub const VIRTIO_F_RING_PACKED: u32 = 34;
++pub const VIRTIO_F_IN_ORDER: u32 = 35;
+ pub const VIRTIO_F_ORDER_PLATFORM: u32 = 36;
+ pub const VIRTIO_F_SR_IOV: u32 = 37;
+ pub const ETH_ALEN: u32 = 6;
+@@ -109,17 +143,23 @@ pub const ETH_P_PPP_SES: u32 = 34916;
+ pub const ETH_P_LINK_CTL: u32 = 34924;
+ pub const ETH_P_ATMFATE: u32 = 34948;
+ pub const ETH_P_PAE: u32 = 34958;
++pub const ETH_P_PROFINET: u32 = 34962;
++pub const ETH_P_REALTEK: u32 = 34969;
+ pub const ETH_P_AOE: u32 = 34978;
++pub const ETH_P_ETHERCAT: u32 = 34980;
+ pub const ETH_P_8021AD: u32 = 34984;
+ pub const ETH_P_802_EX1: u32 = 34997;
+ pub const ETH_P_PREAUTH: u32 = 35015;
+ pub const ETH_P_TIPC: u32 = 35018;
++pub const ETH_P_LLDP: u32 = 35020;
++pub const ETH_P_MRP: u32 = 35043;
+ pub const ETH_P_MACSEC: u32 = 35045;
+ pub const ETH_P_8021AH: u32 = 35047;
+ pub const ETH_P_MVRP: u32 = 35061;
+ pub const ETH_P_1588: u32 = 35063;
+ pub const ETH_P_NCSI: u32 = 35064;
+ pub const ETH_P_PRP: u32 = 35067;
++pub const ETH_P_CFM: u32 = 35074;
+ pub const ETH_P_FCOE: u32 = 35078;
+ pub const ETH_P_IBOE: u32 = 35093;
+ pub const ETH_P_TDLS: u32 = 35085;
+@@ -132,6 +172,7 @@ pub const ETH_P_QINQ1: u32 = 37120;
+ pub const ETH_P_QINQ2: u32 = 37376;
+ pub const ETH_P_QINQ3: u32 = 37632;
+ pub const ETH_P_EDSA: u32 = 56026;
++pub const ETH_P_DSA_8021Q: u32 = 56027;
+ pub const ETH_P_IFE: u32 = 60734;
+ pub const ETH_P_AF_IUCV: u32 = 64507;
+ pub const ETH_P_802_3_MIN: u32 = 1536;
+@@ -161,6 +202,7 @@ pub const ETH_P_IEEE802154: u32 = 246;
+ pub const ETH_P_CAIF: u32 = 247;
+ pub const ETH_P_XDSA: u32 = 248;
+ pub const ETH_P_MAP: u32 = 249;
++pub const ETH_P_MCTP: u32 = 250;
+ pub const __UAPI_DEF_ETHHDR: u32 = 1;
+ pub const VIRTIO_NET_F_CSUM: u32 = 0;
+ pub const VIRTIO_NET_F_GUEST_CSUM: u32 = 1;
+@@ -184,18 +226,41 @@ pub const VIRTIO_NET_F_CTRL_RX_EXTRA: u32 = 20;
+ pub const VIRTIO_NET_F_GUEST_ANNOUNCE: u32 = 21;
+ pub const VIRTIO_NET_F_MQ: u32 = 22;
+ pub const VIRTIO_NET_F_CTRL_MAC_ADDR: u32 = 23;
++pub const VIRTIO_NET_F_HASH_REPORT: u32 = 57;
++pub const VIRTIO_NET_F_RSS: u32 = 60;
++pub const VIRTIO_NET_F_RSC_EXT: u32 = 61;
+ pub const VIRTIO_NET_F_STANDBY: u32 = 62;
+ pub const VIRTIO_NET_F_SPEED_DUPLEX: u32 = 63;
+ pub const VIRTIO_NET_F_GSO: u32 = 6;
+ pub const VIRTIO_NET_S_LINK_UP: u32 = 1;
+ pub const VIRTIO_NET_S_ANNOUNCE: u32 = 2;
++pub const VIRTIO_NET_RSS_HASH_TYPE_IPv4: u32 = 1;
++pub const VIRTIO_NET_RSS_HASH_TYPE_TCPv4: u32 = 2;
++pub const VIRTIO_NET_RSS_HASH_TYPE_UDPv4: u32 = 4;
++pub const VIRTIO_NET_RSS_HASH_TYPE_IPv6: u32 = 8;
++pub const VIRTIO_NET_RSS_HASH_TYPE_TCPv6: u32 = 16;
++pub const VIRTIO_NET_RSS_HASH_TYPE_UDPv6: u32 = 32;
++pub const VIRTIO_NET_RSS_HASH_TYPE_IP_EX: u32 = 64;
++pub const VIRTIO_NET_RSS_HASH_TYPE_TCP_EX: u32 = 128;
++pub const VIRTIO_NET_RSS_HASH_TYPE_UDP_EX: u32 = 256;
+ pub const VIRTIO_NET_HDR_F_NEEDS_CSUM: u32 = 1;
+ pub const VIRTIO_NET_HDR_F_DATA_VALID: u32 = 2;
++pub const VIRTIO_NET_HDR_F_RSC_INFO: u32 = 4;
+ pub const VIRTIO_NET_HDR_GSO_NONE: u32 = 0;
+ pub const VIRTIO_NET_HDR_GSO_TCPV4: u32 = 1;
+ pub const VIRTIO_NET_HDR_GSO_UDP: u32 = 3;
+ pub const VIRTIO_NET_HDR_GSO_TCPV6: u32 = 4;
+ pub const VIRTIO_NET_HDR_GSO_ECN: u32 = 128;
++pub const VIRTIO_NET_HASH_REPORT_NONE: u32 = 0;
++pub const VIRTIO_NET_HASH_REPORT_IPv4: u32 = 1;
++pub const VIRTIO_NET_HASH_REPORT_TCPv4: u32 = 2;
++pub const VIRTIO_NET_HASH_REPORT_UDPv4: u32 = 3;
++pub const VIRTIO_NET_HASH_REPORT_IPv6: u32 = 4;
++pub const VIRTIO_NET_HASH_REPORT_TCPv6: u32 = 5;
++pub const VIRTIO_NET_HASH_REPORT_UDPv6: u32 = 6;
++pub const VIRTIO_NET_HASH_REPORT_IPv6_EX: u32 = 7;
++pub const VIRTIO_NET_HASH_REPORT_TCPv6_EX: u32 = 8;
++pub const VIRTIO_NET_HASH_REPORT_UDPv6_EX: u32 = 9;
+ pub const VIRTIO_NET_OK: u32 = 0;
+ pub const VIRTIO_NET_ERR: u32 = 1;
+ pub const VIRTIO_NET_CTRL_RX: u32 = 0;
+@@ -217,6 +282,8 @@ pub const VIRTIO_NET_CTRL_MQ: u32 = 4;
+ pub const VIRTIO_NET_CTRL_MQ_VQ_PAIRS_SET: u32 = 0;
+ pub const VIRTIO_NET_CTRL_MQ_VQ_PAIRS_MIN: u32 = 1;
+ pub const VIRTIO_NET_CTRL_MQ_VQ_PAIRS_MAX: u32 = 32768;
++pub const VIRTIO_NET_CTRL_MQ_RSS_CONFIG: u32 = 1;
++pub const VIRTIO_NET_CTRL_MQ_HASH_CONFIG: u32 = 2;
+ pub const VIRTIO_NET_CTRL_GUEST_OFFLOADS: u32 = 5;
+ pub const VIRTIO_NET_CTRL_GUEST_OFFLOADS_SET: u32 = 0;
+ pub type __s8 = ::std::os::raw::c_schar;
+@@ -321,6 +388,7 @@ fn bindgen_test_layout___kernel_fsid_t() {
+ }
+ pub type __kernel_off_t = __kernel_long_t;
+ pub type __kernel_loff_t = ::std::os::raw::c_longlong;
++pub type __kernel_old_time_t = __kernel_long_t;
+ pub type __kernel_time_t = __kernel_long_t;
+ pub type __kernel_time64_t = ::std::os::raw::c_longlong;
+ pub type __kernel_clock_t = __kernel_long_t;
+@@ -416,17 +484,20 @@ fn bindgen_test_layout_ethhdr() {
+ #[derive(Debug, Default, Copy, Clone, PartialEq)]
+ pub struct virtio_net_config {
+     pub mac: [__u8; 6usize],
+-    pub status: __u16,
+-    pub max_virtqueue_pairs: __u16,
+-    pub mtu: __u16,
+-    pub speed: __u32,
++    pub status: __virtio16,
++    pub max_virtqueue_pairs: __virtio16,
++    pub mtu: __virtio16,
++    pub speed: __le32,
+     pub duplex: __u8,
++    pub rss_max_key_size: __u8,
++    pub rss_max_indirection_table_length: __le16,
++    pub supported_hash_types: __le32,
+ }
+ #[test]
+ fn bindgen_test_layout_virtio_net_config() {
+     assert_eq!(
+         ::std::mem::size_of::<virtio_net_config>(),
+-        17usize,
++        24usize,
+         concat!("Size of: ", stringify!(virtio_net_config))
+     );
+     assert_eq!(
+@@ -536,17 +607,308 @@ fn bindgen_test_layout_virtio_net_config() {
+         );
+     }
+     test_field_duplex();
++    fn test_field_rss_max_key_size() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<virtio_net_config>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).rss_max_key_size) as usize - ptr as usize
++            },
++            17usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_config),
++                "::",
++                stringify!(rss_max_key_size)
++            )
++        );
++    }
++    test_field_rss_max_key_size();
++    fn test_field_rss_max_indirection_table_length() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<virtio_net_config>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).rss_max_indirection_table_length) as usize
++                    - ptr as usize
++            },
++            18usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_config),
++                "::",
++                stringify!(rss_max_indirection_table_length)
++            )
++        );
++    }
++    test_field_rss_max_indirection_table_length();
++    fn test_field_supported_hash_types() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<virtio_net_config>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).supported_hash_types) as usize - ptr as usize
++            },
++            20usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_config),
++                "::",
++                stringify!(supported_hash_types)
++            )
++        );
++    }
++    test_field_supported_hash_types();
+ }
+ #[repr(C)]
+-#[derive(Debug, Default, Copy, Clone, PartialEq)]
++#[derive(Copy, Clone)]
+ pub struct virtio_net_hdr_v1 {
+     pub flags: __u8,
+     pub gso_type: __u8,
+     pub hdr_len: __virtio16,
+     pub gso_size: __virtio16,
++    pub __bindgen_anon_1: virtio_net_hdr_v1__bindgen_ty_1,
++    pub num_buffers: __virtio16,
++}
++#[repr(C)]
++#[derive(Copy, Clone)]
++pub union virtio_net_hdr_v1__bindgen_ty_1 {
++    pub __bindgen_anon_1: virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_1,
++    pub csum: virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_2,
++    pub rsc: virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_3,
++}
++#[repr(C)]
++#[derive(Debug, Default, Copy, Clone, PartialEq)]
++pub struct virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_1 {
+     pub csum_start: __virtio16,
+     pub csum_offset: __virtio16,
+-    pub num_buffers: __virtio16,
++}
++#[test]
++fn bindgen_test_layout_virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_1() {
++    assert_eq!(
++        ::std::mem::size_of::<virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_1>(),
++        4usize,
++        concat!(
++            "Size of: ",
++            stringify!(virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_1)
++        )
++    );
++    assert_eq!(
++        ::std::mem::align_of::<virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_1>(),
++        2usize,
++        concat!(
++            "Alignment of ",
++            stringify!(virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_1)
++        )
++    );
++    fn test_field_csum_start() {
++        assert_eq!(
++            unsafe {
++                let uninit = :: std :: mem :: MaybeUninit :: < virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_1 > :: uninit () ;
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).csum_start) as usize - ptr as usize
++            },
++            0usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_1),
++                "::",
++                stringify!(csum_start)
++            )
++        );
++    }
++    test_field_csum_start();
++    fn test_field_csum_offset() {
++        assert_eq!(
++            unsafe {
++                let uninit = :: std :: mem :: MaybeUninit :: < virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_1 > :: uninit () ;
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).csum_offset) as usize - ptr as usize
++            },
++            2usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_1),
++                "::",
++                stringify!(csum_offset)
++            )
++        );
++    }
++    test_field_csum_offset();
++}
++#[repr(C)]
++#[derive(Debug, Default, Copy, Clone, PartialEq)]
++pub struct virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_2 {
++    pub start: __virtio16,
++    pub offset: __virtio16,
++}
++#[test]
++fn bindgen_test_layout_virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_2() {
++    assert_eq!(
++        ::std::mem::size_of::<virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_2>(),
++        4usize,
++        concat!(
++            "Size of: ",
++            stringify!(virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_2)
++        )
++    );
++    assert_eq!(
++        ::std::mem::align_of::<virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_2>(),
++        2usize,
++        concat!(
++            "Alignment of ",
++            stringify!(virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_2)
++        )
++    );
++    fn test_field_start() {
++        assert_eq!(
++            unsafe {
++                let uninit = :: std :: mem :: MaybeUninit :: < virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_2 > :: uninit () ;
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).start) as usize - ptr as usize
++            },
++            0usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_2),
++                "::",
++                stringify!(start)
++            )
++        );
++    }
++    test_field_start();
++    fn test_field_offset() {
++        assert_eq!(
++            unsafe {
++                let uninit = :: std :: mem :: MaybeUninit :: < virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_2 > :: uninit () ;
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).offset) as usize - ptr as usize
++            },
++            2usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_2),
++                "::",
++                stringify!(offset)
++            )
++        );
++    }
++    test_field_offset();
++}
++#[repr(C)]
++#[derive(Debug, Default, Copy, Clone, PartialEq)]
++pub struct virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_3 {
++    pub segments: __le16,
++    pub dup_acks: __le16,
++}
++#[test]
++fn bindgen_test_layout_virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_3() {
++    assert_eq!(
++        ::std::mem::size_of::<virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_3>(),
++        4usize,
++        concat!(
++            "Size of: ",
++            stringify!(virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_3)
++        )
++    );
++    assert_eq!(
++        ::std::mem::align_of::<virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_3>(),
++        2usize,
++        concat!(
++            "Alignment of ",
++            stringify!(virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_3)
++        )
++    );
++    fn test_field_segments() {
++        assert_eq!(
++            unsafe {
++                let uninit = :: std :: mem :: MaybeUninit :: < virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_3 > :: uninit () ;
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).segments) as usize - ptr as usize
++            },
++            0usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_3),
++                "::",
++                stringify!(segments)
++            )
++        );
++    }
++    test_field_segments();
++    fn test_field_dup_acks() {
++        assert_eq!(
++            unsafe {
++                let uninit = :: std :: mem :: MaybeUninit :: < virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_3 > :: uninit () ;
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).dup_acks) as usize - ptr as usize
++            },
++            2usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_hdr_v1__bindgen_ty_1__bindgen_ty_3),
++                "::",
++                stringify!(dup_acks)
++            )
++        );
++    }
++    test_field_dup_acks();
++}
++#[test]
++fn bindgen_test_layout_virtio_net_hdr_v1__bindgen_ty_1() {
++    assert_eq!(
++        ::std::mem::size_of::<virtio_net_hdr_v1__bindgen_ty_1>(),
++        4usize,
++        concat!("Size of: ", stringify!(virtio_net_hdr_v1__bindgen_ty_1))
++    );
++    assert_eq!(
++        ::std::mem::align_of::<virtio_net_hdr_v1__bindgen_ty_1>(),
++        2usize,
++        concat!("Alignment of ", stringify!(virtio_net_hdr_v1__bindgen_ty_1))
++    );
++    fn test_field_csum() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<virtio_net_hdr_v1__bindgen_ty_1>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).csum) as usize - ptr as usize
++            },
++            0usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_hdr_v1__bindgen_ty_1),
++                "::",
++                stringify!(csum)
++            )
++        );
++    }
++    test_field_csum();
++    fn test_field_rsc() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<virtio_net_hdr_v1__bindgen_ty_1>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).rsc) as usize - ptr as usize
++            },
++            0usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_hdr_v1__bindgen_ty_1),
++                "::",
++                stringify!(rsc)
++            )
++        );
++    }
++    test_field_rsc();
++}
++impl Default for virtio_net_hdr_v1__bindgen_ty_1 {
++    fn default() -> Self {
++        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
++        unsafe {
++            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
++            s.assume_init()
++        }
++    }
+ }
+ #[test]
+ fn bindgen_test_layout_virtio_net_hdr_v1() {
+@@ -628,40 +990,6 @@ fn bindgen_test_layout_virtio_net_hdr_v1() {
+         );
+     }
+     test_field_gso_size();
+-    fn test_field_csum_start() {
+-        assert_eq!(
+-            unsafe {
+-                let uninit = ::std::mem::MaybeUninit::<virtio_net_hdr_v1>::uninit();
+-                let ptr = uninit.as_ptr();
+-                ::std::ptr::addr_of!((*ptr).csum_start) as usize - ptr as usize
+-            },
+-            6usize,
+-            concat!(
+-                "Offset of field: ",
+-                stringify!(virtio_net_hdr_v1),
+-                "::",
+-                stringify!(csum_start)
+-            )
+-        );
+-    }
+-    test_field_csum_start();
+-    fn test_field_csum_offset() {
+-        assert_eq!(
+-            unsafe {
+-                let uninit = ::std::mem::MaybeUninit::<virtio_net_hdr_v1>::uninit();
+-                let ptr = uninit.as_ptr();
+-                ::std::ptr::addr_of!((*ptr).csum_offset) as usize - ptr as usize
+-            },
+-            8usize,
+-            concat!(
+-                "Offset of field: ",
+-                stringify!(virtio_net_hdr_v1),
+-                "::",
+-                stringify!(csum_offset)
+-            )
+-        );
+-    }
+-    test_field_csum_offset();
+     fn test_field_num_buffers() {
+         assert_eq!(
+             unsafe {
+@@ -680,6 +1008,113 @@ fn bindgen_test_layout_virtio_net_hdr_v1() {
+     }
+     test_field_num_buffers();
+ }
++impl Default for virtio_net_hdr_v1 {
++    fn default() -> Self {
++        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
++        unsafe {
++            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
++            s.assume_init()
++        }
++    }
++}
++#[repr(C)]
++#[derive(Copy, Clone)]
++pub struct virtio_net_hdr_v1_hash {
++    pub hdr: virtio_net_hdr_v1,
++    pub hash_value: __le32,
++    pub hash_report: __le16,
++    pub padding: __le16,
++}
++#[test]
++fn bindgen_test_layout_virtio_net_hdr_v1_hash() {
++    assert_eq!(
++        ::std::mem::size_of::<virtio_net_hdr_v1_hash>(),
++        20usize,
++        concat!("Size of: ", stringify!(virtio_net_hdr_v1_hash))
++    );
++    assert_eq!(
++        ::std::mem::align_of::<virtio_net_hdr_v1_hash>(),
++        4usize,
++        concat!("Alignment of ", stringify!(virtio_net_hdr_v1_hash))
++    );
++    fn test_field_hdr() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<virtio_net_hdr_v1_hash>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).hdr) as usize - ptr as usize
++            },
++            0usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_hdr_v1_hash),
++                "::",
++                stringify!(hdr)
++            )
++        );
++    }
++    test_field_hdr();
++    fn test_field_hash_value() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<virtio_net_hdr_v1_hash>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).hash_value) as usize - ptr as usize
++            },
++            12usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_hdr_v1_hash),
++                "::",
++                stringify!(hash_value)
++            )
++        );
++    }
++    test_field_hash_value();
++    fn test_field_hash_report() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<virtio_net_hdr_v1_hash>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).hash_report) as usize - ptr as usize
++            },
++            16usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_hdr_v1_hash),
++                "::",
++                stringify!(hash_report)
++            )
++        );
++    }
++    test_field_hash_report();
++    fn test_field_padding() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<virtio_net_hdr_v1_hash>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).padding) as usize - ptr as usize
++            },
++            18usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_hdr_v1_hash),
++                "::",
++                stringify!(padding)
++            )
++        );
++    }
++    test_field_padding();
++}
++impl Default for virtio_net_hdr_v1_hash {
++    fn default() -> Self {
++        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
++        unsafe {
++            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
++            s.assume_init()
++        }
++    }
++}
+ #[repr(C)]
+ #[derive(Debug, Default, Copy, Clone, PartialEq)]
+ pub struct virtio_net_hdr {
+@@ -1008,3 +1443,235 @@ fn bindgen_test_layout_virtio_net_ctrl_mq() {
+     }
+     test_field_virtqueue_pairs();
+ }
++#[repr(C)]
++#[derive(Debug, Default)]
++pub struct virtio_net_rss_config {
++    pub hash_types: __le32,
++    pub indirection_table_mask: __le16,
++    pub unclassified_queue: __le16,
++    pub indirection_table: [__le16; 1usize],
++    pub max_tx_vq: __le16,
++    pub hash_key_length: __u8,
++    pub hash_key_data: __IncompleteArrayField<__u8>,
++}
++#[test]
++fn bindgen_test_layout_virtio_net_rss_config() {
++    assert_eq!(
++        ::std::mem::size_of::<virtio_net_rss_config>(),
++        16usize,
++        concat!("Size of: ", stringify!(virtio_net_rss_config))
++    );
++    assert_eq!(
++        ::std::mem::align_of::<virtio_net_rss_config>(),
++        4usize,
++        concat!("Alignment of ", stringify!(virtio_net_rss_config))
++    );
++    fn test_field_hash_types() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<virtio_net_rss_config>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).hash_types) as usize - ptr as usize
++            },
++            0usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_rss_config),
++                "::",
++                stringify!(hash_types)
++            )
++        );
++    }
++    test_field_hash_types();
++    fn test_field_indirection_table_mask() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<virtio_net_rss_config>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).indirection_table_mask) as usize - ptr as usize
++            },
++            4usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_rss_config),
++                "::",
++                stringify!(indirection_table_mask)
++            )
++        );
++    }
++    test_field_indirection_table_mask();
++    fn test_field_unclassified_queue() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<virtio_net_rss_config>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).unclassified_queue) as usize - ptr as usize
++            },
++            6usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_rss_config),
++                "::",
++                stringify!(unclassified_queue)
++            )
++        );
++    }
++    test_field_unclassified_queue();
++    fn test_field_indirection_table() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<virtio_net_rss_config>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).indirection_table) as usize - ptr as usize
++            },
++            8usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_rss_config),
++                "::",
++                stringify!(indirection_table)
++            )
++        );
++    }
++    test_field_indirection_table();
++    fn test_field_max_tx_vq() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<virtio_net_rss_config>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).max_tx_vq) as usize - ptr as usize
++            },
++            10usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_rss_config),
++                "::",
++                stringify!(max_tx_vq)
++            )
++        );
++    }
++    test_field_max_tx_vq();
++    fn test_field_hash_key_length() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<virtio_net_rss_config>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).hash_key_length) as usize - ptr as usize
++            },
++            12usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_rss_config),
++                "::",
++                stringify!(hash_key_length)
++            )
++        );
++    }
++    test_field_hash_key_length();
++    fn test_field_hash_key_data() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<virtio_net_rss_config>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).hash_key_data) as usize - ptr as usize
++            },
++            13usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_rss_config),
++                "::",
++                stringify!(hash_key_data)
++            )
++        );
++    }
++    test_field_hash_key_data();
++}
++#[repr(C)]
++#[derive(Debug, Default)]
++pub struct virtio_net_hash_config {
++    pub hash_types: __le32,
++    pub reserved: [__le16; 4usize],
++    pub hash_key_length: __u8,
++    pub hash_key_data: __IncompleteArrayField<__u8>,
++}
++#[test]
++fn bindgen_test_layout_virtio_net_hash_config() {
++    assert_eq!(
++        ::std::mem::size_of::<virtio_net_hash_config>(),
++        16usize,
++        concat!("Size of: ", stringify!(virtio_net_hash_config))
++    );
++    assert_eq!(
++        ::std::mem::align_of::<virtio_net_hash_config>(),
++        4usize,
++        concat!("Alignment of ", stringify!(virtio_net_hash_config))
++    );
++    fn test_field_hash_types() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<virtio_net_hash_config>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).hash_types) as usize - ptr as usize
++            },
++            0usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_hash_config),
++                "::",
++                stringify!(hash_types)
++            )
++        );
++    }
++    test_field_hash_types();
++    fn test_field_reserved() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<virtio_net_hash_config>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).reserved) as usize - ptr as usize
++            },
++            4usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_hash_config),
++                "::",
++                stringify!(reserved)
++            )
++        );
++    }
++    test_field_reserved();
++    fn test_field_hash_key_length() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<virtio_net_hash_config>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).hash_key_length) as usize - ptr as usize
++            },
++            12usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_hash_config),
++                "::",
++                stringify!(hash_key_length)
++            )
++        );
++    }
++    test_field_hash_key_length();
++    fn test_field_hash_key_data() {
++        assert_eq!(
++            unsafe {
++                let uninit = ::std::mem::MaybeUninit::<virtio_net_hash_config>::uninit();
++                let ptr = uninit.as_ptr();
++                ::std::ptr::addr_of!((*ptr).hash_key_data) as usize - ptr as usize
++            },
++            13usize,
++            concat!(
++                "Offset of field: ",
++                stringify!(virtio_net_hash_config),
++                "::",
++                stringify!(hash_key_data)
++            )
++        );
++    }
++    test_field_hash_key_data();
++}
+diff --git a/crates/virtio-bindings/src/virtio_ring.rs b/crates/virtio-bindings/src/virtio_ring.rs
+index 60b84ab..20b4545 100644
+--- a/crates/virtio-bindings/src/virtio_ring.rs
++++ b/crates/virtio-bindings/src/virtio_ring.rs
+@@ -359,6 +359,7 @@ fn bindgen_test_layout___kernel_fsid_t() {
+ }
+ pub type __kernel_off_t = __kernel_long_t;
+ pub type __kernel_loff_t = ::std::os::raw::c_longlong;
++pub type __kernel_old_time_t = __kernel_long_t;
+ pub type __kernel_time_t = __kernel_long_t;
+ pub type __kernel_time64_t = ::std::os::raw::c_longlong;
+ pub type __kernel_clock_t = __kernel_long_t;
+@@ -592,12 +593,13 @@ fn bindgen_test_layout_vring_used_elem() {
+     }
+     test_field_len();
+ }
++pub type vring_used_elem_t = vring_used_elem;
+ #[repr(C)]
+ #[derive(Debug, Default)]
+ pub struct vring_used {
+     pub flags: __virtio16,
+     pub idx: __virtio16,
+-    pub ring: __IncompleteArrayField<vring_used_elem>,
++    pub ring: __IncompleteArrayField<vring_used_elem_t>,
+ }
+ #[test]
+ fn bindgen_test_layout_vring_used() {
+@@ -663,13 +665,16 @@ fn bindgen_test_layout_vring_used() {
+     }
+     test_field_ring();
+ }
++pub type vring_desc_t = vring_desc;
++pub type vring_avail_t = vring_avail;
++pub type vring_used_t = vring_used;
+ #[repr(C)]
+ #[derive(Debug, Copy, Clone, PartialEq)]
+ pub struct vring {
+     pub num: ::std::os::raw::c_uint,
+-    pub desc: *mut vring_desc,
+-    pub avail: *mut vring_avail,
+-    pub used: *mut vring_used,
++    pub desc: *mut vring_desc_t,
++    pub avail: *mut vring_avail_t,
++    pub used: *mut vring_used_t,
+ }
+ #[test]
+ fn bindgen_test_layout_vring() {
+-- 
+2.37.1
+
