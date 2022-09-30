@@ -2,7 +2,7 @@
 , libGL, wayland, wayland-protocols, libinput, libxkbcommon, pixman
 , xcbutilwm, libX11, libcap, xcbutilimage, xcbutilerrors, mesa
 , libpng, ffmpeg_4, xcbutilrenderutil, seatd, vulkan-loader, glslang
-, nixosTests
+, nixosTests, fetchpatch
 
 , enableXWayland ? true, xwayland ? null
 }:
@@ -38,6 +38,24 @@ stdenv.mkDerivation rec {
   mesonFlags =
     lib.optional (!enableXWayland) "-Dxwayland=disabled"
   ;
+
+  patches = [
+    (fetchpatch {
+      url = "https://gitlab.freedesktop.org/puckipedia/wlroots/-/commit/1f2cd76e27f19d268dec60b72e2bfdcb13cff660.patch";
+      sha256 = "sha256-18/v/TTRrnDDzrGJ4ZqCsnH+wsFuAJMvgBDS+JqAjoU=";
+    })
+    (fetchpatch {
+      url = "https://gitlab.freedesktop.org/puckipedia/wlroots/-/commit/193e7dc6bb02ca379dc7d26ef407b8216e1fb503.patch";
+      sha256 = "sha256-Z+Hi+DBVH/m1MABTzlxMLUuWMe5BFg++J9UP1mxs4z8=";
+    })
+  ];
+
+  # Add the protocol here instead of in wayland-protocols for recompilation reasons
+  postPatch = ''
+    cp ${./security-context-v1.xml} protocol/security-context-v1.xml
+    substituteInPlace protocol/meson.build \
+      --replace "wl_protocol_dir / 'staging/security-context/" "'"
+  '';
 
   postFixup = ''
     # Install ALL example programs to $examples:
