@@ -1,0 +1,71 @@
+From 6ac11f04ea3344ca0c3873ee9526a8863c9529ae Mon Sep 17 00:00:00 2001
+From: Alyssa Ross <alyssa.ross@unikie.com>
+Date: Wed, 28 Sep 2022 15:27:39 +0000
+Subject: [PATCH crosvm 3/3] devices: vhost_user: loosen expected message order
+
+Prior to this patch, the code assumed get_shared_memory_regions()
+would be called before set_slave_req_fd(), since
+get_shared_memory_regions() was the only place that set self.shmid,
+and set_slave_req_fd() required it to be set.  There's nothing in the
+vhost-user spec that enforces this ordering though, so it could fail
+when used with a non-crosvm frontend.
+
+To fix this, just don't store the shmid here at all, and fetch it from
+the backend when it's required.  set_slave_req_fd() should only be
+called once, and the two backends that implement
+get_shared_memory_region() (Wl and Gpu) both have trivial
+implementations, so there shouldn't be any performance reason to cache
+shmid here.
+
+TEST=Run cloud-hypervisor against a crosvm vhost-user backend
+
+Change-Id: Idb44aeb1dfe1aeff70081987fe6d7d215887d2e4
+---
+ devices/src/virtio/vhost/user/device/handler.rs | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/devices/src/virtio/vhost/user/device/handler.rs b/devices/src/virtio/vhost/user/device/handler.rs
+index 932d948959..27b4eb1619 100644
+--- a/devices/src/virtio/vhost/user/device/handler.rs
++++ b/devices/src/virtio/vhost/user/device/handler.rs
+@@ -408,7 +408,6 @@ where
+     mem: Option<GuestMemory>,
+     backend: Box<dyn VhostUserBackend>,
+     ops: O,
+-    shmid: Option<u8>,
+ }
+ 
+ impl DeviceRequestHandler<VhostUserRegularOps> {
+@@ -436,7 +435,6 @@ where
+             mem: None,
+             backend,
+             ops,
+-            shmid: None,
+         }
+     }
+ }
+@@ -696,7 +694,12 @@ impl<O: VhostUserPlatformOps> VhostUserSlaveReqHandlerMut for DeviceRequestHandl
+     }
+ 
+     fn set_slave_req_fd(&mut self, ep: Box<dyn Endpoint<SlaveReq>>) {
+-        let shmid = self.shmid.expect("unexpected slave_req_fd");
++        let shmid = self
++            .backend
++            .get_shared_memory_region()
++            .expect("unexpected slave_req_fd")
++            .id;
++
+         let frontend = Slave::new(ep);
+         self.backend
+             .set_shared_memory_mapper(Box::new(VhostShmemMapper {
+@@ -738,7 +741,6 @@ impl<O: VhostUserPlatformOps> VhostUserSlaveReqHandlerMut for DeviceRequestHandl
+ 
+     fn get_shared_memory_regions(&mut self) -> VhostResult<Vec<VhostSharedMemoryRegion>> {
+         Ok(if let Some(r) = self.backend.get_shared_memory_region() {
+-            self.shmid = Some(r.id);
+             vec![VhostSharedMemoryRegion::new(r.id, r.length)]
+         } else {
+             Vec::new()
+-- 
+2.37.1
+

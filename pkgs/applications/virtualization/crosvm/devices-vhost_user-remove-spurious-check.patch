@@ -1,0 +1,42 @@
+From e895a064f24d0101a230790bdd6adff6cda898d5 Mon Sep 17 00:00:00 2001
+From: Alyssa Ross <alyssa.ross@unikie.com>
+Date: Wed, 28 Sep 2022 15:19:26 +0000
+Subject: [PATCH crosvm 2/3] devices: vhost_user: remove spurious check
+
+"size" is the amount of data the caller wants to read, not the size of
+the data available to read, so this check doesn't make any sense.
+It's completely valid to read 4 bytes of a 16 byte config space,
+starting at offset 8, but that would fail this check.  crosvm doesn't
+seem to do this, but cloud-hypervisor does, so this caused crashes
+when running cloud-hypervisor against a crosvm vhost-user backend.
+
+I suspect what this code meant to do is check whether offset + size
+would be beyond the end of the config space, but in this part of the
+code we don't know the size of the config space, so it's not possible
+to check that here.
+
+TEST=Run cloud-hypervisor against a crosvm vhost-user backend
+
+Change-Id: I8a3d7960fb67bf8de37cb3f158081d6421859725
+---
+ devices/src/virtio/vhost/user/device/handler.rs | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/devices/src/virtio/vhost/user/device/handler.rs b/devices/src/virtio/vhost/user/device/handler.rs
+index 32e4aaf876..932d948959 100644
+--- a/devices/src/virtio/vhost/user/device/handler.rs
++++ b/devices/src/virtio/vhost/user/device/handler.rs
+@@ -680,10 +680,6 @@ impl<O: VhostUserPlatformOps> VhostUserSlaveReqHandlerMut for DeviceRequestHandl
+         size: u32,
+         _flags: VhostUserConfigFlags,
+     ) -> VhostResult<Vec<u8>> {
+-        if offset >= size {
+-            return Err(VhostError::InvalidParam);
+-        }
+-
+         let mut data = vec![0; size as usize];
+         self.backend.read_config(u64::from(offset), &mut data);
+         Ok(data)
+-- 
+2.37.1
+
