@@ -4,6 +4,7 @@
 , pango, cairo, libinput, libcap, pam, gdk-pixbuf, librsvg
 , wlroots, wayland-protocols, libdrm
 , nixosTests
+, fetchpatch
 # Used by the NixOS module:
 , isNixOS ? false
 
@@ -38,6 +39,27 @@ stdenv.mkDerivation rec {
     (substituteAll {
       src = ./fix-paths.patch;
       inherit swaybg;
+    })
+
+    (fetchpatch {
+      url = "https://github.com/puckipedia/sway/commit/6b45b7dbc03f5f0184ab0f45d36690df1cc869bd.patch";
+      sha256 = "sha256-LxW+02eTsm/XeKCwhyQfF6FlVVBsdTsybJi7nM4vahI=";
+    })
+    (fetchpatch {
+      url = "https://github.com/puckipedia/sway/commit/f7733c0444b9cc55fbbce20259db4fc97168827a.patch";
+      sha256 = "sha256-+Dsbfwh6+a6j+srMszisRTSsM6U99iG+4eHIz01qGkQ=";
+    })
+    (fetchpatch {
+      url = "https://github.com/puckipedia/sway/commit/683caa484c993d8d46c703f1d18beb2000f6a302.patch";
+      sha256 = "sha256-zTXAveiTfIDp96GmuKx+lWpGTjNexGOCzLxfgKEt8KQ=";
+    })
+    (fetchpatch {
+      url = "https://github.com/puckipedia/sway/commit/2e769c16e69eedd410372c37bf2492d982689488.patch";
+      sha256 = "sha256-4Ap9C9bKqaYxbkYB0pBkywqvsYyYTf3wUYgKClfEkRE=";
+    })
+    (fetchpatch {
+      url = "https://github.com/puckipedia/sway/commit/4ec88a243661f0cf53ede8d354b533a57cfe2208.patch";
+      sha256 = "sha256-g9Ua8RdHzEVgw+KbnJkzHvSD2HVOybpOdPhUw3cCPyY=";
     })
   ] ++ lib.optionals (!isNixOS) [
     # References to /nix/store/... will get GC'ed which causes problems when
