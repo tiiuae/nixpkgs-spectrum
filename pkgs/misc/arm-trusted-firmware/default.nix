@@ -150,7 +150,7 @@ in {
     };
     platform = "imx8qx";
     enableParallelBuilding = true;
-    extraMakeFlags = [ "bl31" ];
+    extraMakeFlags = [ "PIE_LDFLAGS=--no-warn-rwx-segments LDFLAGS=--no-warn-rwx-segments" "bl31" ];
     extraMeta.platforms = [ "aarch64-linux" ];
     filesToInstall = [ "build/${platform}/release/bl31.bin" ];
   };
