@@ -1940,6 +1940,10 @@ with pkgs;
 
   alpine-make-vm-image = callPackage ../tools/virtualization/alpine-make-vm-image { };
 
+  nc-vsock = callPackage ../tools/virtualization/nc-vsock { };
+
+  usbip-unikie = callPackage ../os-specific/linux/usbip-unikie { };
+
   amazon-ec2-utils = callPackage ../tools/admin/amazon-ec2-utils { };
 
   amazon-ecs-cli = callPackage ../tools/virtualization/amazon-ecs-cli { };

@@ -1,4 +1,4 @@
-{ lib, stdenv, fetchurl, substituteAll, autoreconfHook, pkg-config, libusb1, hwdata, python3 }:
+{ lib, stdenv, fetchurl, substituteAll, autoreconfHook, pkg-config, libudev-zero, libusb1, hwdata, python3 }:
 
 stdenv.mkDerivation rec {
   pname = "usbutils";
@@ -17,7 +17,7 @@ stdenv.mkDerivation rec {
   ];
 
   nativeBuildInputs = [ autoreconfHook pkg-config ];
-  buildInputs = [ libusb1 python3 ];
+  buildInputs = [ libudev-zero libusb1 python3 ];
 
   outputs = [ "out" "man" "python" ];
   postInstall = ''
