@@ -29,7 +29,7 @@ stdenv.mkDerivation rec {
     wayland libGL mesa libxkbcommon cairo libxcb libXcursor xlibsWrapper udev libdrm
     mtdev libjpeg pam dbus libinput libevdev pango libunwind freerdp vaapi libva
     libwebp wayland-protocols
-    colord lcms2 pipewire
+    lcms2 pipewire
   ];
 
   mesonFlags= [
@@ -42,6 +42,7 @@ stdenv.mkDerivation rec {
     "-Ddemo-clients=false"
     "-Dsimple-clients="
     "-Dtest-junit-xml=false"
+    "-Dcolor-management-colord=false"
     # TODO:
     #"--enable-clients"
     #"--disable-setuid-install" # prevent install target to chown root weston-launch, which fails
