@@ -1,8 +1,9 @@
 # nc-vsock.nix by vadim.likholetov@unikie.com
-{ lib,stdenv }:
-  stdenv.mkDerivation  {
-    pname = "nc-vsock";
-    version = "0.1";
+let
+  pkgs = import <nixpkgs> { };
+in
+  pkgs.stdenv.mkDerivation {
+    name = "nc-vsock";
 
     src = ./.;
 
