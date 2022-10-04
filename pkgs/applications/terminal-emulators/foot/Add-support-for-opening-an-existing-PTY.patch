@@ -1,4 +1,4 @@
-From c820630e2f8915efb08e4efa6a76e54f5e08820c Mon Sep 17 00:00:00 2001
+From e5dd973baaa8ab602f72d80439be856cc6834580 Mon Sep 17 00:00:00 2001
 From: Alyssa Ross <hi@alyssa.is>
 Date: Fri, 10 Dec 2021 17:40:59 +0000
 Subject: [PATCH] Add support for opening an existing PTY
@@ -83,7 +83,7 @@ index ca55b8f3..b1268574 100644
      if (instance->terminal == NULL) {
          LOG_ERR("failed to instantiate new terminal");
 diff --git a/terminal.c b/terminal.c
-index 09c9caea..868831f5 100644
+index 0763fb52..b300678c 100644
 --- a/terminal.c
 +++ b/terminal.c
 @@ -328,6 +328,7 @@ fdm_ptmx(struct fdm *fdm, int fd, int events, void *data)
@@ -135,7 +135,7 @@ index 09c9caea..868831f5 100644
  
 -    /* Start the slave/client */
 -    if ((term->slave = slave_spawn(
--             term->ptmx, argc, term->cwd, argv, envp,
+-             term->ptmx, argc, term->cwd, argv, envp, &conf->env_vars,
 -             conf->term, conf->shell, conf->login_shell,
 -             &conf->notifications)) == -1)
 -    {
@@ -144,7 +144,7 @@ index 09c9caea..868831f5 100644
 +    if (!pty_path) {
 +        /* Start the slave/client */
 +        if ((term->slave = slave_spawn(
-+                 term->ptmx, argc, term->cwd, argv, envp,
++                 term->ptmx, argc, term->cwd, argv, envp, &conf->env_vars,
 +                 conf->term, conf->shell, conf->login_shell,
 +                 &conf->notifications)) == -1)
 +        {
@@ -205,10 +205,10 @@ index 09c9caea..868831f5 100644
  
      term->selection.auto_scroll.fd = -1;
 diff --git a/terminal.h b/terminal.h
-index 17a5abf9..61be38f6 100644
+index 0dde6330..61b1b7fe 100644
 --- a/terminal.h
 +++ b/terminal.h
-@@ -675,8 +675,9 @@ struct config;
+@@ -680,8 +680,9 @@ struct config;
  struct terminal *term_init(
      const struct config *conf, struct fdm *fdm, struct reaper *reaper,
      struct wayland *wayl, const char *foot_exe, const char *cwd,
@@ -221,5 +221,5 @@ index 17a5abf9..61be38f6 100644
  bool term_shutdown(struct terminal *term);
  int term_destroy(struct terminal *term);
 -- 
-2.35.1
+2.37.1
 

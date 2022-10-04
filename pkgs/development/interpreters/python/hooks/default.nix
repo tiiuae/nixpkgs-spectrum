@@ -6,6 +6,7 @@
 , isPy3k
 , ensureNewerSourcesForZipFilesHook
 , findutils
+, installShellFiles
 }:
 
 let
@@ -91,9 +92,8 @@ in rec {
   pythonCatchConflictsHook = callPackage ({ setuptools }:
     makeSetupHook {
       name = "python-catch-conflicts-hook";
-      deps = [ setuptools ];
       substitutions = {
-        inherit pythonInterpreter;
+        inherit pythonInterpreter pythonSitePackages setuptools;
         catchConflicts=../catch_conflicts/catch_conflicts.py;
       };
     } ./python-catch-conflicts-hook.sh) {};
@@ -113,6 +113,11 @@ in rec {
         inherit pythonSitePackages findutils;
       };
     } ./python-namespaces-hook.sh) {};
+
+  pythonOutputDistHook = callPackage ({ }:
+    makeSetupHook {
+      name = "python-output-dist-hook";
+  } ./python-output-dist-hook.sh ) {};
 
   pythonRecompileBytecodeHook = callPackage ({ }:
     makeSetupHook {
@@ -164,6 +169,14 @@ in rec {
       };
     } ./setuptools-check-hook.sh) {};
 
+  unittestCheckHook = callPackage ({ }:
+    makeSetupHook {
+      name = "unittest-check-hook";
+      substitutions = {
+        inherit pythonCheckInterpreter;
+      };
+    } ./unittest-check-hook.sh) {};
+
   venvShellHook = disabledIf (!isPy3k) (callPackage ({ }:
     makeSetupHook {
       name = "venv-shell-hook";
@@ -182,6 +195,6 @@ in rec {
   sphinxHook = callPackage ({ sphinx }:
     makeSetupHook {
       name = "python${python.pythonVersion}-sphinx-hook";
-      deps = [ sphinx ];
+      deps = [ sphinx installShellFiles ];
     } ./sphinx-hook.sh) {};
 }

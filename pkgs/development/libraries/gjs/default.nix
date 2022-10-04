@@ -2,6 +2,7 @@
 , lib
 , stdenv
 , meson
+, mesonEmulatorHook
 , ninja
 , pkg-config
 , gnome
@@ -12,6 +13,7 @@
 , pango
 , cairo
 , readline
+, libsysprof-capture
 , glib
 , libxml2
 , dbus
@@ -30,13 +32,13 @@ let
   ];
 in stdenv.mkDerivation rec {
   pname = "gjs";
-  version = "1.72.0";
+  version = "1.72.2";
 
   outputs = [ "out" "dev" "installedTests" ];
 
   src = fetchurl {
     url = "mirror://gnome/sources/gjs/${lib.versions.majorMinor version}/${pname}-${version}.tar.xz";
-    sha256 = "sha256-PvDK9xbjkg3WH3dI9tVuR2zA/Bg1GtBUjn3xoKub3K0=";
+    sha256 = "sha256-3e43m9xafTA6XYlL4rKBvrisVFCGBOfT8geBqGnaOXc=";
   };
 
   patches = [
@@ -54,14 +56,17 @@ in stdenv.mkDerivation rec {
     makeWrapper
     which # for locale detection
     libxml2 # for xml-stripblanks
+    dbus # for dbus-run-session
+    gobject-introspection
+  ] ++ lib.optionals (!stdenv.buildPlatform.canExecute stdenv.hostPlatform) [
+    mesonEmulatorHook
   ];
 
   buildInputs = [
-    gobject-introspection
     cairo
     readline
+    libsysprof-capture
     spidermonkey_91
-    dbus # for dbus-run-session
   ];
 
   checkInputs = [
@@ -73,7 +78,6 @@ in stdenv.mkDerivation rec {
   ];
 
   mesonFlags = [
-    "-Dprofiler=disabled"
     "-Dinstalled_test_prefix=${placeholder "installedTests"}"
   ];
 

@@ -9,20 +9,25 @@
 
 buildPythonPackage rec {
   pname = "billiard";
-  version = "3.6.4.0";
+  version = "4.0.2";
   format = "setuptools";
 
   disabled = pythonOlder "3.7";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "0ismj2p8c66ykpss94rs0bfra5agxxmljz8r3gaq79r8valfb799";
+    sha256 = "sha256-jUFd+FrDG5dXlxJaxIZJL+TF5OJx07DfdWHrI0YsmwM=";
   };
 
   checkInputs = [
     case
     psutil
     pytestCheckHook
+  ];
+
+  disabledTests = [
+    # psutil.NoSuchProcess: process no longer exists (pid=168)
+    "test_set_pdeathsig"
   ];
 
   pythonImportsCheck = [

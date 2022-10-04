@@ -11,7 +11,7 @@ let
 
       metaFetch = import ../build-support/coq/meta-fetch/default.nix
         {inherit lib stdenv fetchzip; };
-      mkCoqDerivation = callPackage ../build-support/coq {};
+      mkCoqDerivation = lib.makeOverridable (callPackage ../build-support/coq {});
 
       contribs = recurseIntoAttrs
         (callPackage ../development/coq-modules/contribs {});
@@ -36,6 +36,7 @@ let
       coq-record-update = callPackage ../development/coq-modules/coq-record-update { };
       coqeal = callPackage ../development/coq-modules/coqeal {};
       coqhammer = callPackage ../development/coq-modules/coqhammer {};
+      coqide = callPackage ../development/coq-modules/coqide {};
       coqprime = callPackage ../development/coq-modules/coqprime {};
       coqtail-math = callPackage ../development/coq-modules/coqtail-math {};
       coquelicot = callPackage ../development/coq-modules/coquelicot {};
@@ -81,6 +82,10 @@ let
       mathcomp-zify = callPackage ../development/coq-modules/mathcomp-zify {};
       mathcomp-tarjan = callPackage ../development/coq-modules/mathcomp-tarjan {};
       metacoq = callPackage ../development/coq-modules/metacoq { };
+      metacoq-template-coq = self.metacoq.template-coq;
+      metacoq-pcuic        = self.metacoq.pcuic;
+      metacoq-safechecker  = self.metacoq.safechecker;
+      metacoq-erasure      = self.metacoq.erasure;
       metalib = callPackage ../development/coq-modules/metalib { };
       multinomials = callPackage ../development/coq-modules/multinomials {};
       odd-order = callPackage ../development/coq-modules/odd-order { };
@@ -151,6 +156,7 @@ in rec {
   coq_8_13 = mkCoq "8.13";
   coq_8_14 = mkCoq "8.14";
   coq_8_15 = mkCoq "8.15";
+  coq_8_16 = mkCoq "8.16";
 
   coqPackages_8_5 = mkCoqPackages coq_8_5;
   coqPackages_8_6 = mkCoqPackages coq_8_6;
@@ -163,6 +169,7 @@ in rec {
   coqPackages_8_13 = mkCoqPackages coq_8_13;
   coqPackages_8_14 = mkCoqPackages coq_8_14;
   coqPackages_8_15 = mkCoqPackages coq_8_15;
+  coqPackages_8_16 = mkCoqPackages coq_8_16;
   coqPackages = recurseIntoAttrs coqPackages_8_15;
   coq = coqPackages.coq;
 

@@ -1,8 +1,10 @@
 { lib
+, stdenv
 , buildGoModule
 , fetchFromGitHub
 , callPackage
 , config
+, writeShellScript
 
 , cdrtools # libvirt
 }:
@@ -16,13 +18,14 @@ let
      , rev
      , version
      , sha256
-     , vendorSha256 ? throw "vendorSha256 missing: please use `buildGoModule`" /* added 2022/01 */
+     , vendorSha256
      , deleteVendor ? false
      , proxyVendor ? false
+     , mkProviderGoModule ? buildGoModule
      , # Looks like "registry.terraform.io/vancluever/acme"
        provider-source-address
      }@attrs:
-      buildGoModule {
+      mkProviderGoModule {
         pname = repo;
         inherit vendorSha256 version deleteVendor proxyVendor;
         subPackages = [ "." ];
@@ -45,7 +48,12 @@ let
         '';
 
         # Keep the attributes around for later consumption
-        passthru = attrs;
+        passthru = attrs // {
+          updateScript = writeShellScript "update" ''
+            provider="$(basename ${provider-source-address})"
+            ./pkgs/applications/networking/cluster/terraform-providers/update-provider --no-build "$provider"
+          '';
+        };
       });
 
   list = lib.importJSON ./providers.json;
@@ -56,10 +64,7 @@ let
   # These are the providers that don't fall in line with the default model
   special-providers =
     {
-      # Packages that don't fit the default model
-
-      # mkisofs needed to create ISOs holding cloud-init data,
-      # and wrapped to terraform via deecb4c1aab780047d79978c636eeb879dd68630
+      # mkisofs needed to create ISOs holding cloud-init data and wrapped to terraform via deecb4c1aab780047d79978c636eeb879dd68630
       libvirt = automated-providers.libvirt.overrideAttrs (_: { propagatedBuildInputs = [ cdrtools ]; });
     };
 
@@ -70,6 +75,9 @@ let
       removed = name: date: throw "the ${name} terraform provider removed from nixpkgs on ${date}";
     in
     lib.optionalAttrs config.allowAliases {
+      b2 = removed "b2" "2022/06";
+      dome9 = removed "dome9" "2022/08";
+      ncloud = removed "ncloud" "2022/08";
       opc = archived "opc" "2022/05";
       oraclepaas = archived "oraclepaas" "2022/05";
       template = archived "template" "2022/05";

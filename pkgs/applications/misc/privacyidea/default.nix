@@ -1,9 +1,9 @@
 { lib, fetchFromGitHub, cacert, openssl, nixosTests
-, python3
+, python39
 }:
 
 let
-  python3' = python3.override {
+  python3' = python39.override {
     packageOverrides = self: super: {
       sqlalchemy = super.sqlalchemy.overridePythonAttrs (oldAttrs: rec {
         version = "1.3.24";
@@ -19,7 +19,7 @@ let
       });
       flask_migrate = super.flask_migrate.overridePythonAttrs (oldAttrs: rec {
         version = "2.7.0";
-        src = python3.pkgs.fetchPypi {
+        src = self.fetchPypi {
           pname = "Flask-Migrate";
           inherit version;
           sha256 = "ae2f05671588762dd83a21d8b18c51fe355e86783e24594995ff8d7380dffe38";
@@ -35,19 +35,7 @@ let
         checkInputs = old.checkInputs ++ (with self; [
           requests
         ]);
-        disabledTests = old.disabledTests ++ [
-          # ResourceWarning: unclosed file
-          "test_basic"
-          "test_date_to_unix"
-          "test_easteregg"
-          "test_file_rfc2231_filename_continuations"
-          "test_find_terminator"
-          "test_save_to_pathlib_dst"
-        ];
-        disabledTestPaths = old.disabledTestPaths ++ [
-          # ResourceWarning: unclosed file
-          "tests/test_http.py"
-        ];
+        doCheck = false;
       });
       # Required by flask-1.1
       jinja2 = super.jinja2.overridePythonAttrs (old: rec {
@@ -65,30 +53,49 @@ let
           sha256 = "sha256-WUxngH+xYjizDES99082wCzfItHIzake+KDtjav1Ygo=";
         };
       });
-      # Required by flask-babel
       itsdangerous = super.itsdangerous.overridePythonAttrs (old: rec {
-        version = "2.0.1";
+        version = "1.1.0";
         src = old.src.override {
           inherit version;
-          sha256 = "sha256-nnJNaPwikCoUNTUfhMP7hiPzA//8xWaky5Ut+MVyz/A=";
+          sha256 = "321b033d07f2a4136d3ec762eac9f16a10ccd60f53c0c91af90217ace7ba1f19";
         };
       });
-      flask = self.callPackage ../../../development/python2-modules/flask { };
+      flask = super.flask.overridePythonAttrs (old: rec {
+        version = "1.1.4";
+        src = old.src.override {
+          inherit version;
+          sha256 = "0fbeb6180d383a9186d0d6ed954e0042ad9f18e0e8de088b2b419d526927d196";
+        };
+      });
       sqlsoup = super.sqlsoup.overrideAttrs ({ meta ? {}, ... }: {
         meta = meta // { broken = false; };
+      });
+      click = super.click.overridePythonAttrs (old: rec {
+        version = "7.1.2";
+        src = old.src.override {
+          inherit version;
+          sha256 = "d2b5255c7c6349bc1bd1e59e08cd12acbbd63ce649f2588755783aa94dfb6b1a";
+        };
+      });
+      # Now requires `lingua` as check input that requires a newer `click`,
+      # however `click-7` is needed by the older flask we need here. Since it's just
+      # for the test-suite apparently, let's skip it for now.
+      Mako = super.Mako.overridePythonAttrs (lib.const {
+        checkInputs = [];
+        doCheck = false;
       });
     };
   };
 in
 python3'.pkgs.buildPythonPackage rec {
   pname = "privacyIDEA";
-  version = "3.7.1";
+  version = "3.7.3";
 
   src = fetchFromGitHub {
     owner = pname;
     repo = pname;
     rev = "v${version}";
-    sha256 = "sha256-c5pWbBaOFQd7z3BvtYgrnZBiknLBDCE6So76Q68AptA=";
+    sha256 = "sha256-odwYUGfgoRrGbLpOh8SuQzYby8Ya6hKSn0rdHp+RS/U=";
     fetchSubmodules = true;
   };
 
@@ -103,23 +110,29 @@ python3'.pkgs.buildPythonPackage rec {
   passthru.tests = { inherit (nixosTests) privacyidea; };
 
   checkInputs = with python3'.pkgs; [ openssl mock pytestCheckHook responses testfixtures ];
+  preCheck = "export HOME=$(mktemp -d)";
+  postCheck = "unset HOME";
   disabledTests = [
-    "AESHardwareSecurityModuleTestCase"
-    "test_01_cert_request"
+    # expects `/home/` to exist, fails with `FileNotFoundError: [Errno 2] No such file or directory: '/home/'`.
     "test_01_loading_scripts"
+
+    # Tries to connect to `fcm.googleapis.com`.
     "test_02_api_push_poll"
-    "test_02_cert_enrolled"
-    "test_02_enroll_rights"
-    "test_02_get_resolvers"
-    "test_02_success"
-    "test_03_get_identifiers"
-    "test_04_remote_user_auth"
+
+    # Timezone info not available in build sandbox
     "test_14_convert_timestamp_to_utc"
+
+    # Fails because of different logger configurations
+    "test_01_create_default_app"
+    "test_03_logging_config_file"
+    "test_04_logging_config_yaml"
+    "test_05_logging_config_broken_yaml"
   ];
 
   pythonImportsCheck = [ "privacyidea" ];
 
   postPatch = ''
+    patchShebangs tests/testdata/scripts
     substituteInPlace privacyidea/lib/resolvers/LDAPIdResolver.py --replace \
       "/etc/privacyidea/ldap-ca.crt" \
       "${cacert}/etc/ssl/certs/ca-bundle.crt"

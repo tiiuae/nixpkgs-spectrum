@@ -10,28 +10,29 @@ in
   # `pandoc lemmy.md -t docbook --top-level-division=chapter --extract-media=media -f markdown+smart > lemmy.xml`
   meta.doc = ./lemmy.xml;
 
+  imports = [
+    (mkRemovedOptionModule [ "services" "lemmy" "jwtSecretPath" ] "As of v0.13.0, Lemmy auto-generates the JWT secret.")
+  ];
+
   options.services.lemmy = {
 
-    enable = mkEnableOption "lemmy a federated alternative to reddit in rust";
-
-    jwtSecretPath = mkOption {
-      type = types.path;
-      description = "Path to read the jwt secret from.";
-    };
+    enable = mkEnableOption (lib.mdDoc "lemmy a federated alternative to reddit in rust");
 
     ui = {
       port = mkOption {
         type = types.port;
         default = 1234;
-        description = "Port where lemmy-ui should listen for incoming requests.";
+        description = lib.mdDoc "Port where lemmy-ui should listen for incoming requests.";
       };
     };
 
-    caddy.enable = mkEnableOption "exposing lemmy with the caddy reverse proxy";
+    caddy.enable = mkEnableOption (lib.mdDoc "exposing lemmy with the caddy reverse proxy");
+
+    database.createLocally = mkEnableOption (lib.mdDoc "creation of database on the instance");
 
     settings = mkOption {
       default = { };
-      description = "Lemmy configuration";
+      description = lib.mdDoc "Lemmy configuration";
 
       type = types.submodule {
         freeformType = settingsFormat.type;
@@ -39,34 +40,31 @@ in
         options.hostname = mkOption {
           type = types.str;
           default = null;
-          description = "The domain name of your instance (eg 'lemmy.ml').";
+          description = lib.mdDoc "The domain name of your instance (eg 'lemmy.ml').";
         };
 
         options.port = mkOption {
           type = types.port;
           default = 8536;
-          description = "Port where lemmy should listen for incoming requests.";
+          description = lib.mdDoc "Port where lemmy should listen for incoming requests.";
         };
 
         options.federation = {
-          enabled = mkEnableOption "activitypub federation";
+          enabled = mkEnableOption (lib.mdDoc "activitypub federation");
         };
 
         options.captcha = {
           enabled = mkOption {
             type = types.bool;
             default = true;
-            description = "Enable Captcha.";
+            description = lib.mdDoc "Enable Captcha.";
           };
           difficulty = mkOption {
             type = types.enum [ "easy" "medium" "hard" ];
             default = "medium";
-            description = "The difficultly of the captcha to solve.";
+            description = lib.mdDoc "The difficultly of the captcha to solve.";
           };
         };
-
-        options.database.createLocally = mkEnableOption "creation of database on the instance";
-
       };
     };
 
@@ -117,7 +115,7 @@ in
               file_server
             }
             @for_backend {
-              path /api/* /pictrs/* feeds/* nodeinfo/*
+              path /api/* /pictrs/* /feeds/* /nodeinfo/*
             }
             handle @for_backend {
               reverse_proxy 127.0.0.1:${toString cfg.settings.port}
@@ -143,7 +141,7 @@ in
       };
 
       assertions = [{
-        assertion = cfg.settings.database.createLocally -> localPostgres;
+        assertion = cfg.database.createLocally -> localPostgres;
         message = "if you want to create the database locally, you need to use a local database";
       }];
 
@@ -164,22 +162,15 @@ in
 
         wantedBy = [ "multi-user.target" ];
 
-        after = [ "pict-rs.service " ] ++ lib.optionals cfg.settings.database.createLocally [ "lemmy-postgresql.service" ];
+        after = [ "pict-rs.service" ] ++ lib.optionals cfg.database.createLocally [ "lemmy-postgresql.service" ];
 
-        requires = lib.optionals cfg.settings.database.createLocally [ "lemmy-postgresql.service" ];
-
-        # script is needed here since loadcredential is not accessible on ExecPreStart
-        script = ''
-          ${pkgs.coreutils}/bin/install -m 600 ${settingsFormat.generate "config.hjson" cfg.settings} /run/lemmy/config.hjson
-          jwtSecret="$(< $CREDENTIALS_DIRECTORY/jwt_secret )"
-          ${pkgs.jq}/bin/jq ".jwt_secret = \"$jwtSecret\"" /run/lemmy/config.hjson | ${pkgs.moreutils}/bin/sponge /run/lemmy/config.hjson
-          ${pkgs.lemmy-server}/bin/lemmy_server
-        '';
+        requires = lib.optionals cfg.database.createLocally [ "lemmy-postgresql.service" ];
 
         serviceConfig = {
           DynamicUser = true;
           RuntimeDirectory = "lemmy";
-          LoadCredential = "jwt_secret:${cfg.jwtSecretPath}";
+          ExecStartPre = "${pkgs.coreutils}/bin/install -m 600 ${settingsFormat.generate "config.hjson" cfg.settings} /run/lemmy/config.hjson";
+          ExecStart = "${pkgs.lemmy-server}/bin/lemmy_server";
         };
       };
 
@@ -211,7 +202,7 @@ in
         };
       };
 
-      systemd.services.lemmy-postgresql = mkIf cfg.settings.database.createLocally {
+      systemd.services.lemmy-postgresql = mkIf cfg.database.createLocally {
         description = "Lemmy postgresql db";
         after = [ "postgresql.service" ];
         partOf = [ "lemmy.service" ];

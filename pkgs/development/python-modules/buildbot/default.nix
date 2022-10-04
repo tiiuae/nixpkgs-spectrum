@@ -1,7 +1,7 @@
 { stdenv, lib, buildPythonPackage, fetchPypi, makeWrapper, isPy3k
 , python, twisted, jinja2, msgpack, zope_interface, sqlalchemy, alembic
 , python-dateutil, txaio, autobahn, pyjwt, pyyaml, treq, txrequests, pypugjs
-, boto3, moto, mock, lz4, setuptoolsTrial, isort, pylint, flake8
+, boto3, moto, mock, lz4, setuptoolsTrial
 , buildbot-worker, buildbot-pkg, buildbot-plugins, parameterized, git, openssh
 , glibcLocales
 , nixosTests
@@ -11,6 +11,7 @@ let
   withPlugins = plugins: buildPythonPackage {
     pname = "${package.pname}-with-plugins";
     inherit (package) version;
+    format = "other";
 
     dontUnpack = true;
     dontBuild = true;
@@ -32,11 +33,11 @@ let
 
   package = buildPythonPackage rec {
     pname = "buildbot";
-    version = "3.5.0";
+    version = "3.6.0";
 
     src = fetchPypi {
       inherit pname version;
-      sha256 = "sha256-woGHdCan5qTp00toNkWa821EgVQMrPK+OWXoqFcgIDQ=";
+      sha256 = "sha256-C8KXh+4bsf0zE8PCTwK3H/0pMP762I26quQiyHVkr2A=";
     };
 
     propagatedBuildInputs = [
@@ -65,9 +66,6 @@ let
       mock
       lz4
       setuptoolsTrial
-      isort
-      pylint
-      flake8
       buildbot-worker
       buildbot-pkg
       buildbot-plugins.www

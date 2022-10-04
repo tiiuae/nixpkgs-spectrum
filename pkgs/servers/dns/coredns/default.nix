@@ -6,16 +6,16 @@
 
 buildGoModule rec {
   pname = "coredns";
-  version = "1.9.2";
+  version = "1.10.0";
 
   src = fetchFromGitHub {
     owner = "coredns";
     repo = "coredns";
     rev = "v${version}";
-    sha256 = "sha256-6ABcXRuPEkzhjVZcltPoWGAc+fs6FwmgQCMRuLmhXxo=";
+    sha256 = "sha256-Kb4nkxuyZHJT5dqFSkqReFkN8q1uYm7wbhSIiLd8Hck=";
   };
 
-  vendorSha256 = "sha256-0S77748voNlIuY6yUAa669pB09h35THojCyQKUm5VFc=";
+  vendorSha256 = "sha256-nyMeKmGoypDrpZHYHGjhRnjgC3tbOX/dlj96pnXrdLE=";
 
   postPatch = ''
     substituteInPlace test/file_cname_proxy_test.go \

@@ -16,11 +16,11 @@
 
 buildPythonPackage rec {
   pname = "imageio";
-  version = "2.16.1";
+  version = "2.21.3";
   disabled = isPy27;
 
   src = fetchPypi {
-    sha256 = "sha256-fxI8sjp3rFq+jtTnrWpggxqC3ixdEjRj3PHUJ4xHedI=";
+    sha256 = "sha256-sQpYPIMcky9K++qehAMILSp2sdMNdVW3d863BEGJCzw=";
     inherit pname version;
   };
 

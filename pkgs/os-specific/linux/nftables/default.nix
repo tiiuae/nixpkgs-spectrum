@@ -1,8 +1,8 @@
-{ lib, stdenv, fetchurl, pkg-config, bison, file, flex
+{ lib, stdenv, fetchurl, pkg-config, bison, flex
 , asciidoc, libxslt, findXMLCatalogs, docbook_xml_dtd_45, docbook_xsl
 , libmnl, libnftnl, libpcap
 , gmp, jansson
-, autoreconfHook, fetchpatch
+, autoreconfHook
 , withDebugSymbols ? false
 , withCli ? true, libedit
 , withPython ? false , python3
@@ -10,17 +10,17 @@
 }:
 
 stdenv.mkDerivation rec {
-  version = "1.0.2";
+  version = "1.0.5";
   pname = "nftables";
 
   src = fetchurl {
     url = "https://netfilter.org/projects/nftables/files/${pname}-${version}.tar.bz2";
-    sha256 = "00jcjn1pl7qyqpg8pd4yhlkys7wbj4vkzgg73n27nmplzips6a0b";
+    hash = "sha256-jRtLGDk69DaY0QuqJdK5tjl5ab7srHgWw13QcU5N5Qo=";
   };
 
   nativeBuildInputs = [
     autoreconfHook
-    pkg-config bison file flex
+    pkg-config bison flex
     asciidoc docbook_xml_dtd_45 docbook_xsl findXMLCatalogs libxslt
   ];
 
@@ -30,18 +30,6 @@ stdenv.mkDerivation rec {
   ] ++ lib.optional withCli libedit
     ++ lib.optional withXtables iptables
     ++ lib.optional withPython python3;
-
-  preConfigure = ''
-    substituteInPlace ./configure --replace /usr/bin/file ${file}/bin/file
-  '';
-
-  patches = [
-    # fix build after 1.0.2 release, drop when updating to a newer release
-    (fetchpatch {
-      url = "https://git.netfilter.org/nftables/patch/?id=18a08fb7f0443f8bde83393bd6f69e23a04246b3";
-      sha256 = "03dzhd7fhg0d20ly4rffk4ra7wlxp731892dhp8zw67jwhys9ywz";
-    })
-  ];
 
   configureFlags = [
     "--with-json"
