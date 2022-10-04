@@ -1,4 +1,4 @@
-{ version, hash }:
+{ version, sha256 }:
 { lib
 , stdenv
 , fetchurl
@@ -15,10 +15,14 @@
 , # allow FIPS mode. Note that this makes the output non-reproducible.
   # https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSS/NSS_Tech_Notes/nss_tech_note6
   enableFIPS ? false
-, nixosTests
 }:
 
 let
+  nssPEM = fetchurl {
+    url = "http://dev.gentoo.org/~polynomial-c/mozilla/nss-3.15.4-pem-support-20140109.patch.xz";
+    sha256 = "10ibz6y0hknac15zr6dw4gv9nb5r5z9ym6gq18j3xqx7v7n3vpdw";
+  };
+
   underscoreVersion = lib.replaceStrings [ "." ] [ "_" ] version;
 in
 stdenv.mkDerivation rec {
@@ -27,7 +31,7 @@ stdenv.mkDerivation rec {
 
   src = fetchurl {
     url = "mirror://mozilla/security/nss/releases/NSS_${underscoreVersion}_RTM/src/${pname}-${version}.tar.gz";
-    inherit hash;
+    inherit sha256;
   };
 
   depsBuildBuild = [ buildPackages.stdenv.cc ];
@@ -39,19 +43,14 @@ stdenv.mkDerivation rec {
 
   propagatedBuildInputs = [ nspr ];
 
-  patches = [
-    # Based on http://patch-tracker.debian.org/patch/series/dl/nss/2:3.15.4-1/85_security_load.patch
-    (if (lib.versionOlder version "3.77") then
-      ./85_security_load.patch
-    else
-      ./85_security_load_3.77+.patch
-    )
-    ./fix-cross-compilation.patch
-  ];
+  prePatch = ''
+    # strip the trailing whitespace from the patch line and the renamed CKO_NETSCAPE_ enum to CKO_NSS_
+    xz -d < ${nssPEM} | sed \
+       -e 's/-DIRS = builtins $/-DIRS = . builtins/g' \
+       -e 's/CKO_NETSCAPE_/CKO_NSS_/g' \
+       -e 's/CKT_NETSCAPE_/CKT_NSS_/g' \
+       | patch -p1
 
-  patchFlags = [ "-p0" ];
-
-  postPatch = ''
     patchShebangs nss
 
     for f in nss/coreconf/config.gypi nss/build.sh nss/coreconf/config.gypi; do
@@ -59,7 +58,22 @@ stdenv.mkDerivation rec {
     done
 
     substituteInPlace nss/coreconf/config.gypi --replace "/usr/bin/grep" "${buildPackages.coreutils}/bin/env grep"
-  '' + lib.optionalString stdenv.hostPlatform.isDarwin ''
+  '';
+
+  patches = [
+    # Based on http://patch-tracker.debian.org/patch/series/dl/nss/2:3.15.4-1/85_security_load.patch
+    (if (lib.versionOlder version "3.77") then
+      ./85_security_load.patch
+    else
+      ./85_security_load_3.77+.patch
+    )
+    ./ckpem.patch
+    ./fix-cross-compilation.patch
+  ];
+
+  patchFlags = [ "-p0" ];
+
+  postPatch = lib.optionalString stdenv.hostPlatform.isDarwin ''
     substituteInPlace nss/coreconf/Darwin.mk --replace '@executable_path/$(notdir $@)' "$out/lib/\$(notdir \$@)"
     substituteInPlace nss/coreconf/config.gypi --replace "'DYLIB_INSTALL_NAME_BASE': '@executable_path'" "'DYLIB_INSTALL_NAME_BASE': '$out/lib'"
   '';
@@ -171,12 +185,6 @@ stdenv.mkDerivation rec {
     '';
 
   passthru.updateScript = ./update.sh;
-
-  passthru.tests = lib.optionalAttrs (lib.versionOlder version "3.69") {
-    inherit (nixosTests) firefox-esr-91;
-  } // lib.optionalAttrs (lib.versionAtLeast version "3.69") {
-    inherit (nixosTests) firefox firefox-esr-102;
-  };
 
   meta = with lib; {
     homepage = "https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSS";
