@@ -37,7 +37,7 @@ mkProtobufDerivation = buildProtobuf: stdenv: stdenv.mkDerivation {
 
   enableParallelBuilding = true;
 
-  doCheck = true;
+  doCheck = false;
 
   dontDisableStatic = true;
 
