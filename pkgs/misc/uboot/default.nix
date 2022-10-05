@@ -528,6 +528,9 @@ in {
     };
     BL31 = "${armTrustedFirmwareIMX8QXP}/bl31.bin";
     enableParallelBuilding = true;
+    patches = [
+      ./0001-kvms-copy-to-internal-memory.patch
+    ];
     defconfig = "imx8qxp_mek_defconfig";
     extraMeta.platforms = ["aarch64-linux"];
     filesToInstall = [ "flash.bin" ];
@@ -554,6 +557,9 @@ in {
     };
     BL31 = "${armTrustedFirmwareIMX8QM}/bl31.bin";
     enableParallelBuilding = true;
+    patches = [
+      ./0001-kvms-copy-to-internal-memory.patch
+    ];
     defconfig = "imx8qm_mek_defconfig";
     extraMeta.platforms = ["aarch64-linux"];
     filesToInstall = [ "flash.bin" ];

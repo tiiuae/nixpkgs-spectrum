@@ -26161,6 +26161,8 @@ with pkgs;
 
   kvmtool = callPackage ../applications/virtualization/kvmtool { };
 
+  kvms = callPackage ../os-specific/linux/kvms { };
+
   exrdisplay = callPackage ../applications/graphics/exrdisplay { };
 
   exrtools = callPackage ../applications/graphics/exrtools { };

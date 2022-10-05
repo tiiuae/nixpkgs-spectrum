@@ -1,0 +1,75 @@
+diff --git a/configs/imx8qm_mek_defconfig b/configs/imx8qm_mek_defconfig
+index 1ed6eeee57..94f7851519 100644
+--- a/configs/imx8qm_mek_defconfig
++++ b/configs/imx8qm_mek_defconfig
+@@ -31,7 +31,7 @@ CONFIG_PANIC_HANG=y
+ CONFIG_OF_SYSTEM_SETUP=y
+ CONFIG_BOOTDELAY=3
+ CONFIG_USE_BOOTCOMMAND=y
+-CONFIG_BOOTCOMMAND="run loadhdp; hdp load ${hdp_addr}; run distro_bootcmd;"
++CONFIG_BOOTCOMMAND="run doloadkvms; run loadhdp; hdp load ${hdp_addr}; run distro_bootcmd;"
+ CONFIG_LOG=y
+ CONFIG_BOARD_EARLY_INIT_F=y
+ CONFIG_SPL_BOARD_INIT=y
+diff --git a/configs/imx8qxp_mek_defconfig b/configs/imx8qxp_mek_defconfig
+index c1db95ca88..65feeac14c 100644
+--- a/configs/imx8qxp_mek_defconfig
++++ b/configs/imx8qxp_mek_defconfig
+@@ -32,7 +32,7 @@ CONFIG_OF_BOARD_SETUP=y
+ CONFIG_OF_SYSTEM_SETUP=y
+ CONFIG_BOOTDELAY=3
+ CONFIG_USE_BOOTCOMMAND=y
+-CONFIG_BOOTCOMMAND="run distro_bootcmd; mmc dev ${mmcdev}; if mmc rescan; then if run loadbootscript; then run bootscript; else if test ${sec_boot} = yes; then if run loadcntr; then run mmcboot; else run netboot; fi; else if run loadimage; then run mmcboot; else run netboot; fi; fi; fi; else booti ${loadaddr} - ${fdt_addr}; fi"
++CONFIG_BOOTCOMMAND="run doloadkvms; run distro_bootcmd; mmc dev ${mmcdev}; if mmc rescan; then if run loadbootscript; then run bootscript; else if test ${sec_boot} = yes; then if run loadcntr; then run mmcboot; else run netboot; fi; else if run loadimage; then run mmcboot; else run netboot; fi; fi; fi; else booti ${loadaddr} - ${fdt_addr}; fi"
+ CONFIG_LOG=y
+ CONFIG_BOARD_EARLY_INIT_F=y
+ CONFIG_SPL_BOARD_INIT=y
+diff --git a/include/configs/imx8qm_mek.h b/include/configs/imx8qm_mek.h
+index ab5b58ec32..493050daaf 100644
+--- a/include/configs/imx8qm_mek.h
++++ b/include/configs/imx8qm_mek.h
+@@ -216,11 +216,21 @@
+ 	"hdprx_enable=no\0" \
+ 	"loadhdp=fatload mmc ${mmcdev}:${mmcpart} ${hdp_addr} ${hdp_file}\0" \
+ 	"loadhdprx=fatload mmc ${mmcdev}:${mmcpart} ${hdprx_addr} ${hdprx_file}\0" \
++    "kvms_addr=0xe0000000\0" \
++    "kvms_file=bl1.bin\0" \
++    "loadkvms=fatload mmc ${mmcdev}:${mmcpart} ${kvms_addr} ${kvms_file}\0" \
++    "doloadkvms=if test -e mmc ${mmcdev}:${mmcpart} ${kvms_file}; then " \
++        "echo Found kvms: ${kvms_file}; " \
++        "run loadkvms; " \
++        "echo Loaded ${kvms_file} to ${kvms_addr}; " \
++        "fi;\0" \
+ 	"boot_os=booti ${loadaddr} - ${fdt_addr};\0" \
+ 	"loadcntr=fatload mmc ${mmcdev}:${mmcpart} ${cntr_addr} ${cntr_file}\0" \
+ 	"auth_os=auth_cntr ${cntr_addr}\0" \
+ 	"mmcboot=echo Booting from mmc ...; " \
+ 		HDP_LOAD_ENV \
++        "run loadkvms; " \
++        "echo Loaded kvms to 0xe0000000; " \
+ 		HDPRX_LOAD_ENV \
+ 		"run mmcargs; " \
+ 		"if test ${sec_boot} = yes; then " \
+diff --git a/include/configs/imx8qxp_mek.h b/include/configs/imx8qxp_mek.h
+index d0ef06d0c1..d6ce8e143c 100644
+--- a/include/configs/imx8qxp_mek.h
++++ b/include/configs/imx8qxp_mek.h
+@@ -153,8 +153,18 @@
+ 	"loadfdt=fatload mmc ${mmcdev}:${mmcpart} ${fdt_addr} ${fdt_file}\0" \
+ 	"loadcntr=fatload mmc ${mmcdev}:${mmcpart} ${cntr_addr} ${cntr_file}\0" \
+ 	"auth_os=auth_cntr ${cntr_addr}\0" \
++    "kvms_addr=0xe0000000\0" \
++    "kvms_file=bl1.bin\0" \
++    "loadkvms=fatload mmc ${mmcdev}:${mmcpart} ${kvms_addr} ${kvms_file}\0" \
++    "doloadkvms=if test -e mmc ${mmcdev}:${mmcpart} ${kvms_file}; then " \
++        "echo Found kvms: ${kvms_file}; " \
++        "run loadkvms; " \
++        "echo Loaded ${kvms_file} to ${kvms_addr}; " \
++        "fi;\0" \
+ 	"boot_os=booti ${loadaddr} - ${fdt_addr};\0" \
+ 	"mmcboot=echo Booting from mmc ...; " \
++        "run loadkvms; " \
++        "echo Loaded kvms to 0xe0000000; " \
+ 		"run mmcargs; " \
+ 		"if test ${sec_boot} = yes; then " \
+ 			"if run auth_os; then " \
