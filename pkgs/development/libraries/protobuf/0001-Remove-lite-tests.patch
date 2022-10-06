@@ -1,0 +1,25 @@
+From 4cb6cb465b7bb64bf01eea6b4c7931222fc91517 Mon Sep 17 00:00:00 2001
+From: Tero Tervala <tero.tervala@unikie.com>
+Date: Thu, 6 Oct 2022 13:33:49 +0300
+Subject: [PATCH] Remove lite tests
+
+Signed-off-by: Tero Tervala <tero.tervala@unikie.com>
+---
+ cmake/tests.cmake | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/cmake/tests.cmake b/cmake/tests.cmake
+index 1905673bd..4d8ee9b99 100644
+--- a/cmake/tests.cmake
++++ b/cmake/tests.cmake
+@@ -129,7 +129,6 @@ add_library(protobuf-lite-test-common STATIC
+ target_link_libraries(protobuf-lite-test-common libprotobuf-lite GTest::gmock)
+ 
+ set(common_test_files
+-  ${common_lite_test_files}
+   ${protobuf_SOURCE_DIR}/src/google/protobuf/compiler/mock_code_generator.cc
+   ${protobuf_SOURCE_DIR}/src/google/protobuf/map_test_util.inc
+   ${protobuf_SOURCE_DIR}/src/google/protobuf/reflection_tester.cc
+-- 
+2.33.3
+
