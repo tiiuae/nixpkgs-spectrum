@@ -34,6 +34,16 @@ rustPlatform.buildRustPackage rec {
 
   arch = stdenv.hostPlatform.parsed.cpu.name;
 
+  prePatch = lib.optionalString stdenv.isAarch64 ''
+    substituteInPlace .cargo/config.toml \
+      --replace "[target.aarch64-unknown-linux-gnu]" "" \
+      --replace "linker = \"aarch64-linux-gnu-gcc\"" ""
+
+    substituteInPlace gpu_display/build.rs \
+      --replace "/usr/share/wayland-protocols" \
+        "${wayland-protocols}/share/wayland-protocols"
+  '';
+
   postPatch = ''
     sed -i "s|/usr/share/policy/crosvm/|$PWD/seccomp/$arch/|g" \
         seccomp/$arch/*.policy
