@@ -26161,6 +26161,8 @@ with pkgs;
 
   kvmtool = callPackage ../applications/virtualization/kvmtool { };
 
+  kvms_bin = callPackage ../os-specific/linux/kvms-bin { kernel = linuxKernel.kernels.linux_imx8; };
+
   exrdisplay = callPackage ../applications/graphics/exrdisplay { };
 
   exrtools = callPackage ../applications/graphics/exrtools { };
