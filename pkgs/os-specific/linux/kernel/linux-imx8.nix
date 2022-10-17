@@ -26,6 +26,11 @@ buildLinux (args // rec {
     FB_EFI n
   '';
 
+  kernelPatches = [ {
+    name = "Disable autosuspend USB devices";
+    patch = ./disable-autosuspend-usb.patch;
+  } ];
+
   src = fetchGit {
     url = "https://source.codeaurora.org/external/imx/linux-imx";
     ref = nxp_ref;
