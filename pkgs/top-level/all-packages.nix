@@ -3104,6 +3104,8 @@ with pkgs;
 
   wayland-proxy-virtwl = callPackage ../tools/wayland/wayland-proxy-virtwl { };
 
+  testwayegl = callPackage ../test/testwayegl { };
+
   wev = callPackage ../tools/wayland/wev { };
 
   wdomirror = callPackage ../tools/wayland/wdomirror { };
