@@ -39,6 +39,7 @@ rustPlatform.buildRustPackage rec {
     ./0001-build-use-local-vhost.patch
     ./0002-build-use-local-virtio-bindings.patch
     ./0003-virtio-devices-add-a-GPU-device.patch
+    ./0001-fix-avoid-crash-when-called-on-aarch64.patch
   ];
 
   vhostPatches = [
