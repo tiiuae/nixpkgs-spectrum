@@ -1,0 +1,34 @@
+From 7ac4ea5f0ee85778796d3a5a29b820180967b575 Mon Sep 17 00:00:00 2001
+From: Yuri Nesterov <yuri.nesterov@gmail.com>
+Date: Fri, 28 Oct 2022 09:16:55 +0000
+Subject: [PATCH] cloud-hypervisor: fix crash on aarch64
+
+When running on aarch64 system cloud-hypervisor tries to call the
+set_shm_regions function in the gpu class and it results in crash
+because this function is not implemented. With that change we are
+returning a not supported error instead of panicking so that
+cloud-hypervisor is able to boot the guest virtual machine. This
+is a temporary solution. In the future we will need to add support
+for memory regions in the gpu device.
+
+Signed-off-by: Yuri Nesterov <yuri.nesterov@gmail.com>
+---
+ virtio-devices/src/vhost_user/gpu.rs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/virtio-devices/src/vhost_user/gpu.rs b/virtio-devices/src/vhost_user/gpu.rs
+index 2eb18445..120381c9 100644
+--- a/virtio-devices/src/vhost_user/gpu.rs
++++ b/virtio-devices/src/vhost_user/gpu.rs
+@@ -356,7 +356,7 @@ impl VirtioDevice for Gpu {
+         &mut self,
+         shm_regions: VirtioSharedMemoryList,
+     ) -> std::result::Result<(), crate::Error> {
+-        todo!("set_shm_regions({:?})", shm_regions)
++        Err(crate::Error::SetShmRegionsNotSupported)
+     }
+ 
+     fn add_memory_region(
+-- 
+2.34.1
+
