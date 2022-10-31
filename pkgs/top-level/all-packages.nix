@@ -20340,6 +20340,8 @@ with pkgs;
   libusb1 = callPackage ../development/libraries/libusb1 {
     inherit (darwin) libobjc;
     inherit (darwin.apple_sdk.frameworks) IOKit Security;
+    # TODO: remove once proper configuration is detected during build
+    enableUdev = false;
     # TODO: remove once `udev` is `systemdMinimal` everywhere.
     udev = systemdMinimal;
   };
