@@ -23,7 +23,7 @@ stdenv.mkDerivation rec {
   };
 
   outputs = [ "out" "dev" ];
-  
+
   nativeBuildInputs = [ pkg-config autoreconfHook ];
   propagatedBuildInputs =
     lib.optional enableUdev udev ++
