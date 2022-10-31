@@ -3,7 +3,7 @@
 , fetchpatch
 , autoreconfHook
 , pkg-config
-, enableUdev ? stdenv.isLinux && !stdenv.hostPlatform.isMusl
+, enableUdev ? stdenv.isLinux && !stdenv.targetPlatform.isMusl
 , udev
 , libobjc
 , IOKit
@@ -23,6 +23,8 @@ stdenv.mkDerivation rec {
   };
 
   outputs = [ "out" "dev" ];
+  
+  enableUdev = false;
 
   nativeBuildInputs = [ pkg-config autoreconfHook ];
   propagatedBuildInputs =
