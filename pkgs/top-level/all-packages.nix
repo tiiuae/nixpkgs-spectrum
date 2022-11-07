@@ -9198,6 +9198,8 @@ with pkgs;
   netcat-gnu = callPackage ../tools/networking/netcat { };
 
   netcat-openbsd = callPackage ../tools/networking/netcat-openbsd { };
+  
+  nc-vsock = callPackage ../tools/networking/nc-vsock { };
 
   netdiscover = callPackage ../tools/networking/netdiscover { };
 
@@ -20343,7 +20345,7 @@ with pkgs;
     inherit (darwin) libobjc;
     inherit (darwin.apple_sdk.frameworks) IOKit Security;
     # TODO: remove once proper configuration is detected during build
-    enableUdev = false;
+    enableUdev = true;
     # TODO: remove once `udev` is `systemdMinimal` everywhere.
     udev = systemdMinimal;
   };

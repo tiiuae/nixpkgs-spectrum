@@ -4,6 +4,7 @@
 , autoreconfHook
 , pkg-config
 , enableUdev ? stdenv.isLinux && !stdenv.hostPlatform.isMusl
+, libudev-zero
 , udev
 , libobjc
 , IOKit
@@ -26,7 +27,7 @@ stdenv.mkDerivation rec {
 
   nativeBuildInputs = [ pkg-config autoreconfHook ];
   propagatedBuildInputs =
-    lib.optional enableUdev udev ++
+    lib.optional enableUdev libudev-zero ++
     lib.optionals stdenv.isDarwin [ libobjc IOKit Security ];
 
   dontDisableStatic = withStatic;
@@ -34,7 +35,7 @@ stdenv.mkDerivation rec {
   configureFlags = lib.optional (!enableUdev) "--disable-udev";
 
   preFixup = lib.optionalString enableUdev ''
-    sed 's,-ludev,-L${lib.getLib udev}/lib -ludev,' -i $out/lib/libusb-1.0.la
+    sed 's,-ludev,-L${lib.getLib libudev-zero}/lib -ludev,' -i $out/lib/libusb-1.0.la
   '';
 
   meta = with lib; {
