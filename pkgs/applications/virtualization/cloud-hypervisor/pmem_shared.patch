@@ -1,0 +1,24 @@
+diff -ruN cloud-hypervisor-27.0.orig/vmm/src/device_manager.rs cloud-hypervisor-27.0/vmm/src/device_manager.rs
+--- cloud-hypervisor-27.0.orig/vmm/src/device_manager.rs	2022-10-31 16:17:44.576564211 +0400
++++ cloud-hypervisor-27.0/vmm/src/device_manager.rs	2022-11-02 14:51:27.456338859 +0400
+@@ -52,7 +52,7 @@
+ use hypervisor::{HypervisorType, IoEventAddress};
+ use libc::{
+     cfmakeraw, isatty, tcgetattr, tcsetattr, termios, MAP_NORESERVE, MAP_PRIVATE, MAP_SHARED,
+-    O_TMPFILE, PROT_READ, PROT_WRITE, TCSANOW,
++    MAP_NONBLOCK, O_TMPFILE, PROT_READ, PROT_WRITE, TCSANOW,
+ };
+ #[cfg(target_arch = "x86_64")]
+ use pci::PciConfigIo;
+@@ -2582,9 +2582,9 @@
+             Some(FileOffset::new(cloned_file, 0)),
+             region_size as usize,
+             PROT_READ | PROT_WRITE,
+-            MAP_NORESERVE
++            MAP_NORESERVE | MAP_NONBLOCK
+                 | if pmem_cfg.discard_writes {
+-                    MAP_PRIVATE
++                    MAP_SHARED
+                 } else {
+                     MAP_SHARED
+                 },
