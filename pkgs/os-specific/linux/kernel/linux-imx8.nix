@@ -24,6 +24,7 @@ buildLinux (args // rec {
     LOGO y
     FRAMEBUFFER_CONSOLE_DEFERRED_TAKEOVER n
     FB_EFI n
+    SMP n
   '';
 
   src = fetchGit {
