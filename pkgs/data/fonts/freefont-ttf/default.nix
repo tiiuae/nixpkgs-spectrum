@@ -1,10 +1,9 @@
 { lib, fetchzip }:
 
 fetchzip rec {
-  pname = "freefont-ttf";
-  version = "20120503";
+  name = "freefont-ttf-20120503";
 
-  url = "mirror://gnu/freefont/freefont-ttf-${version}.zip";
+  url = "mirror://gnu/freefont/${name}.zip";
 
   postFetch = ''
     mkdir -p $out/share/fonts/truetype
