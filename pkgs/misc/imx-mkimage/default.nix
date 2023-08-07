@@ -29,6 +29,7 @@ stdenv.mkDerivation rec {
   ];
 
   installPhase = ''
-    install -m 0755 mkimage_imx8 $out
+    mkdir -p $out/bin
+    install -m 0755 mkimage_imx8 $out/bin
   '';
 }
